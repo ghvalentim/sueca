@@ -1,0 +1,48 @@
+
+
+services:
+  # Etapa 1: MySQL
+  db:
+    image: mysql:8.0
+    container_name: jogosueca_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: jogosueca
+      MYSQL_USER: sueca_user
+      MYSQL_PASSWORD: sueca_password
+      MYSQL_ROOT_PASSWORD: sueca_root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # Etapa 2 e 4: Portal PHP
+  www:
+    build: 
+      context: ./www
+      dockerfile: Dockerfile
+    container_name: jogosueca_portal
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      - db
+
+  # Etapa 3 e 4: API Laravel
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: jogosueca_api
+    restart: always
+    ports:
+      - "8001:80"
+    volumes:
+      - ./api:/var/www/html
+    depends_on:
+      - db
+
+volumes:
+  db_data:
