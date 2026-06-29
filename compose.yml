@@ -3,7 +3,8 @@
 services:
   # Etapa 1: MySQL
   db:
-    image: mysql:8.0
+    build:
+      context: ./database
     container_name: jogosueca_db
     restart: always
     environment:
@@ -15,6 +16,8 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - sueca_network
 
   # Etapa 2 e 4: Portal PHP
   www:
@@ -26,9 +29,11 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - ./app:/var/www/html
+      - ./www:/var/www/html
     depends_on:
       - db
+    networks:
+      - sueca_network
 
   # Etapa 3 e 4: API Laravel
   api:
@@ -43,6 +48,14 @@ services:
       - ./api:/var/www/html
     depends_on:
       - db
+    networks:
+      - sueca_network
+    
+  
+
+networks:
+  sueca_network:
+    driver: bridge
 
 volumes:
   db_data:
