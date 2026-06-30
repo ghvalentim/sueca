@@ -20,12 +20,22 @@ body {
 }
 
 .btn-outline-spades {
-    border-color: #46679b;
-    color: #46679b;
+    border-color: #0e1724;
+    color: #0e1724;
+}
+
+.btn-spades-card {
+    background-color: #0e1724;
+    color: white;
+}
+
+.btn-spades-card:hover {
+    background-color: #0a0f1a;
+    color: white;
 }
 
 .btn-outline-spades:hover {
-    background-color: #46679b;
+    background-color: #0e1724;
     color: white;
 }
 

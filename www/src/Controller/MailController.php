@@ -25,6 +25,7 @@ class MailController {
             $mail->Username   = $_ENV['MAIL_USERNAME'];
             $mail->Password   = $_ENV['MAIL_PASSWORD'];
             $mail->Port       = $_ENV['MAIL_PORT'];
+            $mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'] ?? PHPMailer::ENCRYPTION_STARTTLS;
 
             // Destinatário e remetente
             $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
