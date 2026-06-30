@@ -13,7 +13,7 @@
             <div class="col-md-5">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
-                        <h3 class="card-title text-center text-success mb-4">Iniciar Sessão</h3>
+                        <h3 class="card-title text-center text-hearts mb-4">Iniciar Sessão</h3>
                         
                         <?php if (!empty($error)): ?>
                             <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
@@ -29,7 +29,7 @@
                                 <input type="password" class="form-control" id="password" name="password" required>
                             </div>
                             <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-success">Entrar</button>
+                                <button type="submit" class="btn btn-hearts-card text-white">Entrar</button>
                             </div>
                         </form>
                         

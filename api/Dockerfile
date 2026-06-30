@@ -5,10 +5,15 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
-    libonig-dev
+    libonig-dev \
+    g++
 
-# Instalar PDO MySQL
-RUN docker-php-ext-install pdo pdo_mysql mbstring
+
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/install-php-extensions
+
+RUN install-php-extensions pdo_mysql mbstring exif pcntl bcmath gd intl
 
 # Ativar o mod_rewrite do Apache para as rotas do Laravel funcionarem
 RUN a2enmod rewrite

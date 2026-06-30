@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -7,22 +9,28 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-    // Endpoint responsável por receber as credenciais do Portal PHP e devolver o JWT [RF21]
+    public function __construct()
+    {
+        $this->middleware('auth:api', ['except' => ['login']]);
+    }
+
     public function login(Request $request)
     {
-        // O Requisito [RF21] exige especificamente a validação por email e password
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->only(['email', 'password']);
 
-        // O método attempt() valida as credenciais contra a base de dados
-        if (! $token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Credenciais inválidas na API'], 401);
+        if (! $token = auth()->guard('api')->attempt($credentials)) {
+            return response()->json(['error' => true, 'message' => 'Unauthorized'], 401);
         }
 
-        // Se estiver tudo correto, devolve o token gerado
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60
+            'expires_in' => JWTAuth::factory()->getTTL() * 60,
         ]);
+    }
+
+    public function me()
+    {
+        return response()->json(auth('api')->user());
     }
 }

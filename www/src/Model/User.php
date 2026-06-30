@@ -41,4 +41,69 @@ class User {
         }
         return false;
     }
+
+    // Busca os dados do utilizador pelo ID (Sprint 2 - Perfil)
+    public function findById(int $id) {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT id, username, email, created_at FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
+    // Atualiza a password do utilizador (Sprint 2 - Perfil)
+    public function updatePassword(int $id, string $newPassword) {
+        $db = Database::getConnection();
+        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+        return $stmt->execute([$hash, $id]);
+    }
+
+    public function getJwtToken(string $username, string $password) {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT email FROM users WHERE username = ? AND is_active = 1");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return null;
+        }
+
+        if (!password_verify($password, $this->getPasswordHash($username))) {
+            return null;
+        }
+
+        $apiUrl = 'http://localhost:8001/api/auth/login';
+        $postData = json_encode([
+            'email' => $user['email'],
+            'password' => $password,
+        ]);
+
+        $ch = curl_init($apiUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_FAILONERROR, false);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || $httpCode >= 400) {
+            error_log('Erro ao obter JWT da API: ' . $response);
+            return null;
+        }
+
+        $data = json_decode($response, true);
+        return $data['access_token'] ?? null;
+    }
+
+    public function getPasswordHash(string $username) {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT password FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+        return $user ? $user['password'] : null;
+    }
 }

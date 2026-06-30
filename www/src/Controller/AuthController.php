@@ -2,8 +2,7 @@
 namespace Controller;
 
 use Model\User;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+use Controller\MailController;
 
 
 class AuthController {
@@ -39,43 +38,18 @@ class AuthController {
         $token = $userModel->create($username, $email, $password);
 
         if ($token) {
-            // Lógica de Envio de Email para Ativação (RF04 / RF05)
-            // 1. Prepara o Link de Ativação dinâmico com base no host atual
-            $activationLink = "http://" . $_SERVER['HTTP_HOST'] . "/?action=activate&token=" . $token;
+            // 1. Gerar o link de ativação
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $activationLink = $scheme . '://' . $host . '/?action=activate&token=' . $token;
             
             // 2. Tentar enviar via PHPMailer (conforme aula 2.6 PHP - Emails)
-            $autoloadPath = __DIR__ . '/../../vendor/autoload.php';
-            $emailSent = false;
-            
-            if (file_exists($autoloadPath)) {
-                require_once $autoloadPath;
-                
-                $mail = new PHPMailer(true);
-                try {
-                    // Configurações do Servidor SMTP (Exemplo: Mailtrap para testes locais)
-                    $mail->isSMTP();
-                    $mail->Host       = $_ENV['MAIL_HOST'];
-                    $mail->SMTPAuth   = $_ENV['MAIL_SMTPAUTH'];
-                    $mail->Username   = $_ENV['MAIL_USERNAME'];
-                    $mail->Password   = $_ENV['MAIL_PASSWORD'];
-                    $mail->Port       = $_ENV['MAIL_PORT'];
-
-                    // Remetente e Destinatário
-                    $mail->setFrom('noreply@jogosueca.localhost', 'Equipa Jogosueca');
-                    $mail->addAddress($email, $username);
-
-                    // Conteúdo do Email (HTML)
-                    $mail->isHTML(true);
-                    $mail->Subject = 'Bem-vindo ao Jogosueca - Ative a sua conta';
-                    $mail->Body    = "Olá $username,<br><br>Obrigado por se registar no Jogosueca!<br>Por favor, clique no link abaixo para ativar a sua conta:<br><a href='$activationLink'>$activationLink</a><br><br>Cumprimentos,<br>Equipa Jogosueca";
-                    $mail->AltBody = "Olá $username,\n\nObrigado por se registar no Jogosueca!\nPor favor, clique no link abaixo para ativar a sua conta:\n$activationLink\n\nCumprimentos,\nEquipa Jogosueca";
-
-                    $mail->send();
-                    $emailSent = true;
-                } catch (Exception $e) {
-                    $emailSent = false;
-                    // Para depurar erros do PHPMailer, podes fazer: error_log($mail->ErrorInfo);
-                }
+            try {
+                $mailController = new MailController();
+                $emailSent = $mailController->sendActivationEmail($email, $activationLink);
+            } catch (\Exception $e) {
+                // PHPMailer não está disponível (ou sem vendor), simulamos o envio
+                $emailSent = false;
             }
 
             if ($emailSent) {
@@ -155,8 +129,17 @@ class AuthController {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
 
-        // ATENÇÃO: [RF06] Exige que o login faça um pedido cURL à API para obter o JWT.
-        // Faremos essa implementação na próxima etapa, após configurarmos o Laravel!
+       try {
+            // 1. Tentar obter o Token JWT da API
+            $jwtToken = $userModel->getJwtToken($username, $password);
+            
+            $_SESSION['jwt_token'] = $jwtToken; // Guardar o Token JWT na sessão
+        
+        } catch (\Exception $e) {
+            $error = "Erro ao comunicar com a API: " . $e->getMessage();
+            require_once __DIR__ . '/../View/login.php';
+            return;
+        }
 
         header("Location: ?action=home");
         exit;

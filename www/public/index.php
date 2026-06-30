@@ -2,8 +2,6 @@
 // Iniciar sessões (necessário para guardar o estado de login no Portal PHP)
 session_start();
 
-require_once __DIR__ . '/../vendor/autoload.php'; // PHPMailer e outras dependências
-
 // Autoloader manual simples (Evita usar o Composer no Portal, mantendo a simplicidade de PHP Vanilla)
 spl_autoload_register(function ($class_name) {
     // Transforma namespaces como "Controller\AuthController" no caminho "Controller/AuthController.php"
@@ -16,44 +14,55 @@ spl_autoload_register(function ($class_name) {
 // Sistema de Rotas Básico (via query string: ?action=...)
 $action = $_GET['action'] ?? 'home';
 
-// Função auxiliar para instanciar o controlador com segurança
-$getAuthController = function() {
-    if (class_exists('\Controller\AuthController')) {
-        return new \Controller\AuthController();
-    }
-    die("Erro: Controlador de autenticação ainda não foi criado na pasta src/Controller.");
-};
-
 switch ($action) {
     case 'register':
-        $authController = $getAuthController();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $authController->register();
-        } else {
-            $authController->showRegister();
+        if (class_exists('\Controller\AuthController')) {
+            $authController = new \Controller\AuthController();
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $authController->register();
+            } else {
+                $authController->showRegister();
+            }
         }
         break;
 
     case 'activate':
-        // Rota para a ativação da conta via link de email (Fluxo 2)
-        $authController = $getAuthController();
-        $authController->activate();
+        if (class_exists('\Controller\AuthController')) {
+            $authController = new \Controller\AuthController();
+            $authController->activate();
+        }
         break;
 
     case 'login':
-        // Rota para o Login (Fluxo 3)
-        $authController = $getAuthController();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $authController->login();
-        } else {
-            $authController->showLogin();
+        if (class_exists('\Controller\AuthController')) {
+            $authController = new \Controller\AuthController();
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $authController->login();
+            } else {
+                $authController->showLogin();
+            }
         }
         break;
 
     case 'logout':
-        // Rota para o Logout (Fluxo 4)
-        $authController = $getAuthController();
-        $authController->logout();
+        if (class_exists('\Controller\AuthController')) {
+            $authController = new \Controller\AuthController();
+            $authController->logout();
+        }
+        break;
+
+    case 'profile':
+        // Rota para o Perfil (Sprint 2)
+        if (class_exists('\Controller\ProfileController')) {
+            $profileController = new \Controller\ProfileController();
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $profileController->updatePassword();
+            } else {
+                $profileController->show();
+            }
+        } else {
+            echo "Erro: Controlador de perfil ainda não foi criado na pasta src/Controller.";
+        }
         break;
         
     case 'home':
@@ -77,9 +86,23 @@ switch ($action) {
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <!-- Interface para Utilizador Autenticado -->
                         <p class="lead mb-4">Bem-vindo, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>!</p>
-                        <p class="text-muted mb-4">Sessão iniciada com sucesso no Portal.</p>
-                        <div class="d-grid gap-3">
-                            <!-- Mais tarde adicionaremos aqui a lista de salas disponíveis -->
+                        
+                        <?php if (isset($_SESSION['jwt_token'])): ?>
+                            <div class="alert alert-success">
+                                ✅ Sessão iniciada e <strong>Token JWT</strong> obtido da API com sucesso!
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-warning">
+                                ⚠️ Sessão iniciada localmente, mas sem Token JWT.
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="d-grid gap-3 mt-4">
+                            <!-- Botão para a Sprint 2 (Perfil) -->
+                            <a href="?action=profile" class="btn btn-hearts-card btn-lg text-white">O Meu Perfil</a>
+                            
+                            <!-- Mais tarde adicionaremos aqui o botão para as Salas -->
+                            
                             <a href="?action=logout" class="btn btn-outline-danger btn-lg">Terminar Sessão</a>
                         </div>
                     <?php else: ?>

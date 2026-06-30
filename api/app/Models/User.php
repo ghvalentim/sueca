@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 
 // Adicionamos a interface JWTSubject conforme indicado nos slides da aula
 class User extends Authenticatable implements JWTSubject
 {
+
+    use Notifiable;
     // Forçamos o Laravel a usar a tabela que criámos no script init.sql
     protected $table = 'users';
     
