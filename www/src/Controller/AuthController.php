@@ -1,9 +1,8 @@
 <?php
-namespace Controller;
+namespace src\Controller;
 
-use Model\User;
-use Controller\MailController;
-
+use src\Model\User;
+use src\Controller\MailController;
 
 class AuthController {
     
@@ -39,13 +38,12 @@ class AuthController {
         $token = $userModel->create($username, $email, $password);
 
         if ($token) {
-            // 1. Gerar o link de ativação
+            // 1. Gerar o link de ativação com a NOVA rota (/activate)
             $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
             $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-            $activationLink = $scheme . '://' . $host . '/?action=activate&token=' . $token;
+            $activationLink = $scheme . '://' . $host . '/activate?token=' . $token;
             
-            // 2. Tentar enviar via PHPMailer (conforme aula 2.6 PHP - Emails)
-            
+            // 2. Tentar enviar via PHPMailer
             if ($mailController->sendActivationEmail($email, $activationLink)) {
                 $success = "Registo efetuado com sucesso! Verifique o seu email para ativar a conta.";
                 require_once __DIR__ . '/../View/register.php';
@@ -55,27 +53,30 @@ class AuthController {
                 require_once __DIR__ . '/../View/register.php';
             }
         } else {
-            $userModel->deleteAccount($userModel->getLastInsertedId());
+            // Caso $userModel->getLastInsertedId() não exista, tem cuidado com esta linha
+            if(method_exists($userModel, 'getLastInsertedId')) {
+                $userModel->deleteAccount($userModel->getLastInsertedId());
+            }
             $error = "Erro ao criar a conta. Por favor, tente novamente.";
             require_once __DIR__ . '/../View/register.php';
         }
     }
 
-    // Processa a ativação da conta via URL (Fluxo 2)
+    /** A função activate faz a ativação da conta via URL enviada por email */
     public function activate() {
-        $token = $_GET['token'] ?? '';
+        $token = $_GET['token'] ?? ''; // Obter o token da query string
                 
-        if (empty($token)) {
-            $error = "Token de ativação inválido.";
-            require_once __DIR__ . '/../../View/activation-error.php';
+        if (empty($token)) { // Se o token estiver vazio, mostrar a página de erro
+            $error = "Token de ativação inválido."; 
+            require_once __DIR__ . '/../View/activation-error.php'; 
             return;
         } else {
             $userModel = new User();
-            if ($userModel->activateAccount($token)) {
+            if ($userModel->activateAccount($token)) { // Se a ativação for bem-sucedida, mostrar a página de sucesso
                 $success = "Conta ativada com sucesso! Pode agora efetuar o login.";
                 require_once __DIR__ . '/../View/activation-success.php';
                 return;
-            } else {
+            } else { // Se a ativação falhar, mostrar a página de erro
                 $error = "Token de ativação inválido ou a conta já foi ativada.";
                 require_once __DIR__ . '/../View/activation-error.php';
                 return;
@@ -85,11 +86,11 @@ class AuthController {
 
     // Mostra o formulário de Login (Fluxo 3)
     public function showLogin() {
-        require_once __DIR__ . '/../View/login.php';
+        require_once __DIR__ . '/../View/login.php'; //apenas mostra a View de Login, não processa o Login
     }
 
-    // Processa o Login (Fluxo 3)
-    public function login() {
+   
+    public function login() { // Recebe os dados do formulário de login
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
 
@@ -102,50 +103,53 @@ class AuthController {
         $userModel = new User();
         $user = $userModel->verifyCredentials($username, $password);
 
-        if (!$user) {
+        if (!$user) { // Se as credenciais forem inválidas, mostrar a página de login com erro
             $error = "Credenciais inválidas.";
             require_once __DIR__ . '/../View/login.php';
             return;
         }
 
-        // Regra de Negócio: O utilizador tem de estar ativo (RF05/Ativação)
-        if ($user['is_active'] == 0) {
+        
+        if ($user['is_active'] == 0) { // Se a conta não estiver ativada, mostrar a página de login com erro
             $error = "A sua conta ainda não foi ativada. Verifique o seu email.";
             require_once __DIR__ . '/../View/login.php';
             return;
         }
 
-        // Inicia sessão no Portal PHP
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
+      
+        $_SESSION['user_id'] = $user['id']; // Guardar o ID do utilizador na sessão
+        $_SESSION['username'] = $user['username']; // Guardar o username do utilizador na sessão
 
-       try {
+        try {
             // 1. Tentar obter o Token JWT da API
             $jwtToken = $userModel->getJwtToken($username, $password);
             
             $_SESSION['jwt_token'] = $jwtToken; // Guardar o Token JWT na sessão
 
-            if ($jwtToken === null) {
+            if ($jwtToken === null) { // Se não for possível obter o Token JWT, mostrar a página de login com erro
                 $error = "Erro ao obter o Token JWT da API.";
-
-            } else {
-                $success = "Login efetuado com sucesso! Token JWT obtido.";
+                session_destroy(); 
+                require_once __DIR__ . '/../View/login.php';
+                return;
             }
         
-        } catch (\Exception $e) {
+        } catch (\Exception $e) { // Se ocorrer algum erro ao comunicar com a API, mostrar a página de login com erro
             $error = "Erro ao comunicar com a API: " . $e->getMessage();
+            session_destroy();
             require_once __DIR__ . '/../View/login.php';
             return;
         }
 
-        header("Location: ?action=home");
+        // Redireciona para o Lobby, que está na raiz ("/")
+        header("Location: /");
         exit;
     }
 
     // Processa o Logout (Fluxo 4)
     public function logout() {
         session_destroy();
-        header("Location: ?action=home");
+        // Redireciona para o Lobby, que está na raiz ("/")
+        header("Location: /");
         exit;
     }
 }

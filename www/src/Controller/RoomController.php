@@ -1,7 +1,7 @@
 <?php
-namespace Controller;
+namespace src\Controller;
 
-use Model\Room;
+use src\Model\Room;
 
 class RoomController {
     
@@ -18,7 +18,7 @@ class RoomController {
     // Processa a criação de sala
     public function create() {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: ?action=login");
+            header("Location: /create_room");
             exit;
         }
         
@@ -27,18 +27,18 @@ class RoomController {
             $roomModel = new Room();
             $roomId = $roomModel->createRoom($name, $_SESSION['user_id']);
             if ($roomId) {
-                header("Location: ?action=room&id=" . $roomId);
+                header("Location: /room&id=" . $roomId);
                 exit;
             }
         }
-        header("Location: ?action=home");
+        header("Location: /");
         exit;
     }
 
     // Processa o clique no botão "Entrar"
     public function join() {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: ?action=login");
+            header("Location: /login");
             exit;
         }
         
@@ -46,17 +46,17 @@ class RoomController {
         if ($roomId) {
             $roomModel = new Room();
             $roomModel->joinRoom($roomId, $_SESSION['user_id']);
-            header("Location: ?action=room&id=" . $roomId);
+            header("Location: /room&id=" . $roomId);
             exit;
         }
-        header("Location: ?action=home");
+        header("Location: /");
         exit;
     }
     
     // Mostra o ecrã interno de uma sala (O Tabuleiro da Sueca futuramente)
     public function showRoom() {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: ?action=login");
+            header("Location: /");
             exit;
         }
         
@@ -69,7 +69,7 @@ class RoomController {
                 return;
             }
         }
-        header("Location: ?action=home");
+        header("Location: /home");
         exit;
     }
 }

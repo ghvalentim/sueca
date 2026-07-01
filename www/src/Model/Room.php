@@ -1,5 +1,7 @@
 <?php
-namespace Model;
+namespace src\Model;
+
+use src\Model\Database;
 
 class Room {
     

@@ -11,6 +11,7 @@ class AuthController extends Controller
 {
     public function __construct()
     {
+        // Aplica o middleware de autenticação a todas as rotas deste controlador, exceto o login
         $this->middleware('auth:api', ['except' => ['login']]);
     }
 

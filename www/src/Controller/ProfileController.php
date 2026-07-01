@@ -1,14 +1,14 @@
 <?php
-namespace Controller;
+namespace src\Controller;
 
-use Model\User;
+use src\Model\User;
 
 class ProfileController {
     
     // Construtor: Protege as rotas desta classe, exigindo que o utilizador tenha sessão iniciada
     public function __construct() {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: ?action=login");
+            header("Location: /login");
             exit;
         }
     }

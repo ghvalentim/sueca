@@ -18,7 +18,7 @@
                 <!-- Formulário de Criação de Sala -->
                 <div class="bg-light p-3 rounded mb-4 text-start border">
                     <h6 class="mb-3">Criar Nova Sala</h6>
-                    <form action="?action=create_room" method="POST" class="d-flex gap-2">
+                    <form action="/create_room" method="POST" class="d-flex gap-2">
                         <input type="text" name="room_name" class="form-control" placeholder="Introduza o Nome da Sala" required>
                         <button type="submit" class="btn btn-success px-4">Criar</button>
                     </form>
@@ -39,7 +39,7 @@
                                         <br><small class="text-muted">Proprietário: <?= htmlspecialchars($r['owner_name']) ?></small>
                                     </div>
                                     <?php if ($r['player_count'] < 4): ?>
-                                        <a href="?action=join_room&id=<?= $r['id'] ?>" class="btn btn-sm btn-spades-card">Entrar</a>
+                                        <a href="/join_room?id=<?= $r['id'] ?>" class="btn btn-sm btn-spades-card">Entrar</a>
                                     <?php else: ?>
                                         <button class="btn btn-sm btn-secondary" disabled>Cheia</button>
                                     <?php endif; ?>
@@ -50,14 +50,14 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <a href="?action=profile" class="btn btn-carmine text-white">O Meu Perfil</a>
-                    <a href="?action=logout" class="btn btn-outline-spades">Terminar Sessão</a>
+                    <a href="/profile" class="btn btn-carmine text-white">O Meu Perfil</a>
+                    <a href="/logout" class="btn btn-outline-spades">Terminar Sessão</a>
                 </div>
             <?php else: ?>
                 <p class="lead mb-4">Bem-vindo ao Portal Web!</p>
                 <div class="d-grid gap-3">
-                    <a href="?action=login" class="btn btn-success btn-lg">Iniciar Sessão</a>
-                    <a href="?action=register" class="btn btn-outline-primary btn-lg">Criar Conta</a>
+                    <a href="/login" class="btn btn-success btn-lg">Iniciar Sessão</a>
+                    <a href="/register" class="btn btn-outline-primary btn-lg">Criar Conta</a>
                 </div>
             <?php endif; ?>
 

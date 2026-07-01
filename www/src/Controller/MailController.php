@@ -1,21 +1,14 @@
 <?php
 
-namespace Controller;
+namespace src\Controller;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use Dotenv\Dotenv;
-
-require_once __DIR__ . '/../../vendor/autoload.php';
 
 class MailController {
     
-    function __construct() {
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
-    }
-
-    function sendActivationEmail(string $toEmail, string $activationLink) {
+    // Envia um email de ativação para o utilizador
+    public function sendActivationEmail(string $toEmail, string $activationLink) {
         $mail = new PHPMailer(true);
         $host = $_ENV['MAIL_HOST'] ?? '';
         $port = $_ENV['MAIL_PORT'] ?? '';

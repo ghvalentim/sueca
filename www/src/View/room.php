@@ -20,7 +20,7 @@ $room = $room ?? [
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="text-success m-0">Sala: <?= htmlspecialchars($room['name']) ?></h2>
-            <a href="?action=home" class="btn btn-outline-secondary">Sair da Sala (Voltar ao Lobby)</a>
+            <a href="/" class="btn btn-outline-secondary">Sair da Sala (Voltar ao Lobby)</a>
         </div>
 
         <div class="card shadow-sm mb-4">

@@ -1,5 +1,5 @@
 <?php
-namespace Model;
+namespace src\Model;
 
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -11,9 +11,9 @@ use Dotenv\Dotenv;
 
 
 class Database {
-    private static ?PDO $pdo = null;
+    private static ?PDO $pdo = null; // Instância única de PDO (Singleton Pattern)
 
-    public static function getConnection() {
+    public static function getConnection() { // Retorna a instância de PDO, criando-a se ainda não existir
         if (self::$pdo === null) {
             try {
                 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');

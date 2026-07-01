@@ -1,99 +1,34 @@
 <?php
-// Iniciar sessões (necessário para guardar o estado de login no Portal PHP)
+
+require_once __DIR__ . '/../vendor/autoload.php'; 
+// Carrega automaticamente as classes usando o autoloader do Composer
+
+use Dotenv\Dotenv;
+// Carrega as variáveis de ambiente do arquivo .env
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+// Cria uma instância do Dotenv apontando para o diretório raiz do projeto
+
+$dotenv->load();
+// Carrega as variáveis de ambiente definidas no arquivo .env para a superglobal $_ENV
+
 session_start();
+// Inicia a sessão do PHP para gerenciar dados de sessão do usuário
 
-// Autoloader manual simples (Evita usar o Composer no Portal, mantendo a simplicidade de PHP Vanilla)
-spl_autoload_register(function ($class_name) {
-    // Transforma namespaces como "Controller\AuthController" no caminho "Controller/AuthController.php"
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', $class_name) . '.php';
-    if (file_exists($path)) {
-        require_once $path;
-    }
-});
+use src\Router\Router;
+// Importa a classe Router do namespace src\Router
 
-// Sistema de Rotas Básico (via query string: ?action=...)
-$action = $_GET['action'] ?? 'home';
+$router = new Router();
+// Cria uma instância do roteador para gerenciar as rotas da aplicação
 
-switch ($action) {
-    case 'register':
-        if (class_exists('\Controller\AuthController')) {
-            $authController = new \Controller\AuthController();
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $authController->register();
-            } else {
-                $authController->showRegister();
-            }
-        }
-        break;
+(require __DIR__ . '/../routes/web.php')($router);
+// Carrega as rotas definidas no arquivo web.php e passa a instância do roteador para registrar as rotas
 
-    case 'activate':
-        if (class_exists('\Controller\AuthController')) {
-            $authController = new \Controller\AuthController();
-            $authController->activate();
-        }
-        break;
+$router->dispatch();
+// Dispara o roteador para processar a requisição atual e chamar o controlador apropriado
 
-    case 'login':
-        if (class_exists('\Controller\AuthController')) {
-            $authController = new \Controller\AuthController();
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $authController->login();
-            } else {
-                $authController->showLogin();
-            }
-        }
-        break;
+// Define o fuso horário para Portugal
+date_default_timezone_set('Europe/Lisbon');
 
-    case 'logout':
-        if (class_exists('\Controller\AuthController')) {
-            $authController = new \Controller\AuthController();
-            $authController->logout();
-        }
-        break;
 
-    case 'profile':
-        // Rota para o Perfil (Sprint 2)
-        if (class_exists('\Controller\ProfileController')) {
-            $profileController = new \Controller\ProfileController();
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $profileController->updatePassword();
-            } else {
-                $profileController->show();
-            }
-        } else {
-            echo "Erro: Controlador de perfil ainda não foi criado na pasta src/Controller.";
-        }
-        break;
-        
-    case 'create_room':
-        // Rota para criar nova sala (Sprint 3)
-        if (class_exists('\Controller\RoomController')) {
-            (new \Controller\RoomController())->create();
-        }
-        break;
-
-    case 'join_room':
-        // Rota para entrar numa sala existente (Sprint 3)
-        if (class_exists('\Controller\RoomController')) {
-            (new \Controller\RoomController())->join();
-        }
-        break;
-
-    case 'room':
-        // Rota para visualizar o interior da sala / mesa de jogo (Sprint 3)
-        if (class_exists('\Controller\RoomController')) {
-            (new \Controller\RoomController())->showRoom();
-        }
-        break;
-
-    case 'home':
-    default:
-        // Delegação da Página Inicial para o RoomController (Sprint 3)
-        // Todo o HTML provisório foi removido. A apresentação é feita pelo Lobby!
-        if (class_exists('\Controller\RoomController')) {
-            (new \Controller\RoomController())->showLobby();
-        } else {
-            echo "Erro: O Controlador de Salas ainda não foi criado na pasta src/Controller.";
-        }
-        break;
-}
+?>

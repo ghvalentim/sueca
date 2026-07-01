@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 class GameController extends Controller
 {
 
+    public function __construct()
+    {
+        // Aplica o middleware de autenticação a todas as rotas deste controlador
+        $this->middleware('auth:api');
+    }
     // [RF22] Iniciar a Partida
     public function startGame(Request $request, int $roomId)
     {
