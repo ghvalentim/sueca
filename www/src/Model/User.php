@@ -50,6 +50,11 @@ class User {
         return $stmt->fetch();
     }
 
+    public function getLastInsertedId() {
+        $db = Database::getConnection();
+        return $db->lastInsertId();
+    }
+
     // Atualiza a password do utilizador (Sprint 2 - Perfil)
     public function updatePassword(int $id, string $newPassword) {
         $db = Database::getConnection();
@@ -72,7 +77,7 @@ class User {
             return null;
         }
 
-        $apiUrl = 'http://localhost:8001/api/auth/login';
+        $apiUrl = 'http://api/api/auth/login';
         $postData = json_encode([
             'email' => $user['email'],
             'password' => $password,
@@ -80,23 +85,41 @@ class User {
 
         $ch = curl_init($apiUrl);
         curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Content-Length: ' . strlen($postData)]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_FAILONERROR, false);
+         // Debug: mostra o cabeçalho da requisição
 
         $response = curl_exec($ch);
+        $error = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
-        if ($response === false || $httpCode >= 400) {
-            error_log('Erro ao obter JWT da API: ' . $response);
+        if ($response === false) {
+            error_log('Erro ao comunicar com a API: ' . $error);
+            curl_close($ch);
             return null;
         }
 
+        if ($httpCode != 200) {
+            error_log('Erro ao obter JWT da API: ' . $error . ' Código HTTP: ' . $httpCode);
+            return null;
+        } else {
+            error_log('Conexão bem sucedida.' . ' Código HTTP: ' . $httpCode . 'Token obtido com sucesso.');
+        }
+
         $data = json_decode($response, true);
-        return $data['access_token'] ?? null;
+        
+        if (!$data || !isset($data['access_token']) || empty($data['access_token'])) {
+            error_log('Resposta inválida da API: ' . $response);
+            return null;
+        } else {
+            error_log('Token JWT obtido com sucesso!');
+            return $data['access_token'];
+        }   
+        
     }
 
     public function getPasswordHash(string $username) {
@@ -105,5 +128,12 @@ class User {
         $stmt->execute([$username]);
         $user = $stmt->fetch();
         return $user ? $user['password'] : null;
+    }
+
+
+    public function deleteAccount(int $id) {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 }

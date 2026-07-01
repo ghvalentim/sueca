@@ -17,22 +17,32 @@ class MailController {
 
     function sendActivationEmail(string $toEmail, string $activationLink) {
         $mail = new PHPMailer(true);
+        $host = $_ENV['MAIL_HOST'] ?? '';
+        $port = $_ENV['MAIL_PORT'] ?? '';
+        $username = $_ENV['MAIL_USERNAME'] ?? '';
+        $password = $_ENV['MAIL_PASSWORD'] ?? '';
+        $from = $_ENV['MAIL_FROM_ADDRESS'] ?? '';
+        $fromName = $_ENV['MAIL_FROM_NAME'] ?? '';
+
         try {
             // Configurações do Servidor SMTP
             $mail->isSMTP();
-            $mail->Host       = $_ENV['MAIL_HOST'];
+            $mail->Host       = $host;
             $mail->SMTPAuth   = true;
-            $mail->Username   = $_ENV['MAIL_USERNAME'];
-            $mail->Password   = $_ENV['MAIL_PASSWORD'];
-            $mail->Port       = $_ENV['MAIL_PORT'];
-            $mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'] ?? PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Username   = $username;
+            $mail->Password   = $password;
+            $mail->Port       = $port;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPDebug = 0; // Desativar debug para produção
+            $mail->Debugoutput = 'error_log'; // Log de erros para o log do PHP
 
             // Destinatário e remetente
-            $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+            $mail->setFrom($from, $fromName);
             $mail->addAddress($toEmail);
 
             // Conteúdo do Email
             $mail->isHTML(true);
+            $mail->CharSet = 'UTF-8';
             $mail->Subject = 'Ativação de Conta';
             $mail->Body    = "Clique no link para ativar sua conta: <a href='$activationLink'>$activationLink</a>";
 

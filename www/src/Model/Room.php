@@ -17,7 +17,7 @@ class Room {
     }
 
     // Cria a sala e insere automaticamente o dono como o 1º jogador
-    public function createRoom($name, $ownerId) {
+    public function createRoom(string $name, int $ownerId) {
         $db = Database::getConnection();
         try {
             $db->beginTransaction();
@@ -38,7 +38,7 @@ class Room {
     }
 
     // Processa a entrada de um jogador na sala, garantindo que o limite é 4
-    public function joinRoom($roomId, $userId) {
+    public function joinRoom(int $roomId, int $userId) {
         $db = Database::getConnection();
         
         $stmt = $db->prepare("SELECT status, (SELECT COUNT(*) FROM room_players WHERE room_id = ?) as count FROM rooms WHERE id = ?");
@@ -60,7 +60,7 @@ class Room {
     }
 
     // Traz os dados da sala e a lista de jogadores atuais
-    public function getRoomDetails($roomId) {
+    public function getRoomDetails(int $roomId) {
         $db = Database::getConnection();
         $stmt = $db->prepare("SELECT r.*, u.username as owner_name FROM rooms r JOIN users u ON r.owner_id = u.id WHERE r.id = ?");
         $stmt->execute([$roomId]);

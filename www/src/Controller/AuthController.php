@@ -26,6 +26,7 @@ class AuthController {
         }
 
         $userModel = new User();
+        $mailController = new MailController();
 
         // Regra de Negócio: O username e email devem ser únicos
         if ($userModel->checkExists($username, $email)) {
@@ -44,27 +45,18 @@ class AuthController {
             $activationLink = $scheme . '://' . $host . '/?action=activate&token=' . $token;
             
             // 2. Tentar enviar via PHPMailer (conforme aula 2.6 PHP - Emails)
-            try {
-                $mailController = new MailController();
-                $emailSent = $mailController->sendActivationEmail($email, $activationLink);
-            } catch (\Exception $e) {
-                // PHPMailer não está disponível (ou sem vendor), simulamos o envio
-                $emailSent = false;
-            }
-
-            if ($emailSent) {
-                // Cenário Real / Produção: O servidor SMTP está configurado e o email seguiu
-                $success = "Conta criada com sucesso! Verifique a sua caixa de entrada ($email) para ativar a conta.";
-            } else {
-                // Cenário de Teste / Desenvolvimento: PHPMailer falhou (ou sem vendor), mostramos simulação
-                $success = "Conta criada com sucesso!<br><br>";
-                $success .= "<small class='text-muted'>Aviso de Sistema: O envio de email via PHPMailer falhou (falta de SMTP configurado ou pasta vendor). Utilize o botão abaixo para simular o clique no email.</small><br><br>";
-                $success .= "<a href='?action=activate&token=$token' class='btn btn-sm btn-outline-success'>Simular clique no Email de Ativação</a>";
-            }
             
-            require_once __DIR__ . '/../View/register.php';
+            if ($mailController->sendActivationEmail($email, $activationLink)) {
+                $success = "Registo efetuado com sucesso! Verifique o seu email para ativar a conta.";
+                require_once __DIR__ . '/../View/register.php';
+            } else {
+                $userModel->deleteAccount($userModel->getLastInsertedId()); // Remove o utilizador criado
+                $error = "Erro ao enviar o email de ativação. Por favor, tente novamente mais tarde.";
+                require_once __DIR__ . '/../View/register.php';
+            }
         } else {
-            $error = "Ocorreu um erro ao criar a conta. Tente novamente.";
+            $userModel->deleteAccount($userModel->getLastInsertedId());
+            $error = "Erro ao criar a conta. Por favor, tente novamente.";
             require_once __DIR__ . '/../View/register.php';
         }
     }
@@ -72,24 +64,22 @@ class AuthController {
     // Processa a ativação da conta via URL (Fluxo 2)
     public function activate() {
         $token = $_GET['token'] ?? '';
-        
+                
         if (empty($token)) {
-            echo "<div class='container mt-5 text-center'><h3 class='text-danger'>Token inválido.</h3><a href='?action=home'>Voltar ao início</a></div>";
+            $error = "Token de ativação inválido.";
+            require_once __DIR__ . '/../../View/activation-error.php';
             return;
-        }
-
-        $userModel = new User();
-        
-        if ($userModel->activateAccount($token)) {
-            echo "<div class='container mt-5 text-center' style='font-family:sans-serif;'>";
-            echo "<h2 class='text-success mb-4'>Conta ativada com sucesso!</h2>";
-            echo "<a href='?action=login' class='btn btn-success'>Ir para o Login</a>";
-            echo "</div>";
         } else {
-            echo "<div class='container mt-5 text-center' style='font-family:sans-serif;'>";
-            echo "<h2 class='text-danger mb-4'>Token inválido ou conta já ativada.</h2>";
-            echo "<a href='?action=home' class='btn btn-outline-secondary'>Voltar ao início</a>";
-            echo "</div>";
+            $userModel = new User();
+            if ($userModel->activateAccount($token)) {
+                $success = "Conta ativada com sucesso! Pode agora efetuar o login.";
+                require_once __DIR__ . '/../View/activation-success.php';
+                return;
+            } else {
+                $error = "Token de ativação inválido ou a conta já foi ativada.";
+                require_once __DIR__ . '/../View/activation-error.php';
+                return;
+            }
         }
     }
 
@@ -134,6 +124,13 @@ class AuthController {
             $jwtToken = $userModel->getJwtToken($username, $password);
             
             $_SESSION['jwt_token'] = $jwtToken; // Guardar o Token JWT na sessão
+
+            if ($jwtToken === null) {
+                $error = "Erro ao obter o Token JWT da API.";
+
+            } else {
+                $success = "Login efetuado com sucesso! Token JWT obtido.";
+            }
         
         } catch (\Exception $e) {
             $error = "Erro ao comunicar com a API: " . $e->getMessage();
