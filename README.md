@@ -1,104 +1,211 @@
 # TP-SUECA
 
-Projeto desenvolvido no âmbito da unidade curricular de Desenvolvimento Web.
+Projeto desenvolvido no âmbito da Unidade Curricular de **Desenvolvimento Web**.
 
-## Objetivo
+O objetivo é implementar uma plataforma para gestão e execução de partidas do jogo **Sueca**, recorrendo a uma arquitetura distribuída composta por um Portal Web e uma API especializada.
 
-Desenvolver uma plataforma para gestão e execução de partidas do jogo Sueca utilizando uma arquitetura composta por um Portal Web e uma API.
+---
 
-## Arquitetura
+# Arquitetura
 
-O sistema é composto por três serviços Docker:
+O sistema encontra-se dividido em três serviços independentes:
 
-* Portal Web (PHP MVC)
-* API (Laravel)
-* Base de Dados MySQL
+* **Portal Web** (PHP MVC)
+* **API** (Laravel)
+* **Base de Dados** (MySQL)
 
+Todos os serviços são executados em containers Docker e comunicam através da rede interna definida no Docker Compose.
+
+```text
+                Utilizador
+                     │
+                     ▼
+           Portal Web (PHP MVC)
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+    Base de Dados           API Laravel
+        MySQL              Motor da Sueca
 ```
-Utilizador
-      │
-      ▼
-Portal Web (PHP MVC)
-      │
-      ├───────────────┐
-      ▼               ▼
- Base de Dados      API Laravel
-                    Motor do Jogo
-```
 
-## Responsabilidades
+---
 
-### Portal
+# Responsabilidades
 
-* Autenticação de utilizadores
-* Gestão de sessões
-* Registo
-* CRUDs administrativos
-* Interface do utilizador
-* Comunicação com a API
+## Portal Web
 
-### API
+O Portal constitui a interface principal da aplicação e é responsável por:
 
-* Motor do jogo da Sueca
-* Validação das jogadas
-* Gestão das partidas
-* Cálculo da pontuação
-* Regras do jogo
+* Autenticação dos utilizadores;
+* Registo e ativação de contas por email;
+* Gestão de sessões;
+* Gestão do perfil;
+* Gestão de salas (Lobby);
+* Comunicação com a API;
+* Interface gráfica.
+
+---
+
+## API
+
+A API implementa exclusivamente a lógica do jogo.
+
+As suas responsabilidades incluem:
+
+* Autenticação entre Portal e API através de JWT;
+* Gestão das partidas;
+* Validação das regras da Sueca;
+* Estado da partida;
+* Cálculo da pontuação;
+* Exposição dos endpoints REST.
+
+---
 
 ## Base de Dados
 
-Existe apenas uma base de dados.
+O Portal e a API partilham a mesma instância MySQL.
 
-A separação entre Portal e API é feita através da responsabilidade de cada aplicação e da organização das tabelas, evitando duplicação de informação.
+A separação de responsabilidades é efetuada ao nível da arquitetura da aplicação e da organização das tabelas, evitando duplicação de informação.
 
-## Tecnologias
+---
 
-### Portal
+# Estrutura do Projeto
 
-* PHP
-* MVC
+```text
+.
+├── api/
+├── database/
+├── www/
+├── compose.yml
+└── README.md
+```
+
+## API
+
+Aplicação Laravel responsável pelo motor do jogo.
+
+Principais componentes:
+
+* Controllers
+* Models
+* Configuração JWT
+* Rotas REST
+* Migrations
+* Testes
+
+---
+
+## Portal
+
+Aplicação PHP MVC responsável pela interação com o utilizador.
+
+Estrutura:
+
+* Controllers
+* Models
+* Views
+* Recursos estáticos
+* Integração com a API
+
+---
+
+# Tecnologias
+
+## Backend
+
+* PHP 8
+* Laravel
+* MySQL
 * Apache
 
-### API
-
-* Laravel
-* PHP
-
-### Base de Dados
-
-* MySQL
-
-### Infraestrutura
+## Infraestrutura
 
 * Docker
 * Docker Compose
 
-## Estrutura do Projeto
+## Autenticação
 
-```
-api/
-database/
-www/
-compose.yml
-```
+* JSON Web Token (JWT)
+* PHPMailer
 
-## Fluxo de Desenvolvimento
+---
+
+# Funcionalidades Implementadas
+
+* Infraestrutura Docker
+* Portal MVC
+* Sistema de autenticação
+* Login e Logout
+* Registo de utilizadores
+* Ativação de contas por email
+* Perfil de utilizador
+* Estrutura inicial do Lobby
+* Infraestrutura da API
+* Estrutura inicial do motor do jogo
+
+---
+
+# Funcionalidades em Desenvolvimento
+
+* Configuração completa do JWT
+* Integração Portal ⇄ API
+* Motor da Sueca
+* Gestão das salas
+* Frontend assíncrono
+
+---
+
+# Fluxo de Desenvolvimento
 
 O projeto segue GitHub Flow.
 
-Cada funcionalidade é desenvolvida através de:
+Cada funcionalidade é desenvolvida através do seguinte ciclo:
 
-1. Issue
-2. Branch
-3. Commits
-4. Pull Request
-5. Merge
-6. Encerramento da Issue
+1. Criação de uma Issue.
+2. Criação de uma branch `feature/*`.
+3. Desenvolvimento da funcionalidade.
+4. Commits semânticos (Conventional Commits).
+5. Pull Request para a branch `dev`.
+6. Revisão.
+7. Merge.
+8. Encerramento automático da Issue.
 
-## Versionamento
+---
+
+# Versionamento
 
 O projeto utiliza Semantic Versioning.
 
-## Licença
+As integrações são realizadas na branch `dev`.
 
-Projeto académico desenvolvido para fins educativos.
+A branch `main` contém apenas versões estáveis.
+
+---
+
+# Estado Atual
+
+## Concluído
+
+* Infraestrutura do projeto
+* Portal MVC
+* Sistema de autenticação
+* Login e Logout
+
+## Em desenvolvimento
+
+* JWT
+* Comunicação Portal ⇄ API
+
+## Planeado
+
+* Perfil
+* Lobby
+* Motor da Sueca
+* Frontend Assíncrono
+
+---
+
+# Licença
+
+Projeto académico desenvolvido para fins educativos no âmbito da Unidade Curricular de Desenvolvimento Web.
