@@ -1,14 +1,14 @@
 <?php
-namespace src\Controller;
+namespace Controller;
 
-use src\Model\User;
-use src\Controller\MailController;
+use Model\User;
+use Controller\MailController;
 
 class AuthController {
     
     // Mostra o formulário de registo (Fluxo 1)
     public function showRegister() {
-        require_once __DIR__ . '/../View/register.php';
+        require_once __DIR__ . '/../../src/view/register.php';
     }
 
     // Processa a submissão do formulário de registo (Fluxo 1)
@@ -30,7 +30,7 @@ class AuthController {
         // Regra de Negócio: O username e email devem ser únicos
         if ($userModel->checkExists($username, $email)) {
             $error = "O username ou email já se encontram registados.";
-            require_once __DIR__ . '/../View/register.php';
+            require_once __DIR__ . '/../../src/view/register.php';
             return;
         }
 
@@ -46,11 +46,11 @@ class AuthController {
             // 2. Tentar enviar via PHPMailer
             if ($mailController->sendActivationEmail($email, $activationLink)) {
                 $success = "Registo efetuado com sucesso! Verifique o seu email para ativar a conta.";
-                require_once __DIR__ . '/../View/register.php';
+                require_once __DIR__ . '/../../src/view/register.php';
             } else {
                 $userModel->deleteAccount($userModel->getLastInsertedId()); // Remove o utilizador criado
                 $error = "Erro ao enviar o email de ativação. Por favor, tente novamente mais tarde.";
-                require_once __DIR__ . '/../View/register.php';
+                require_once __DIR__ . '/../../src/view/register.php';
             }
         } else {
             // Caso $userModel->getLastInsertedId() não exista, tem cuidado com esta linha
@@ -58,7 +58,7 @@ class AuthController {
                 $userModel->deleteAccount($userModel->getLastInsertedId());
             }
             $error = "Erro ao criar a conta. Por favor, tente novamente.";
-            require_once __DIR__ . '/../View/register.php';
+            require_once __DIR__ . '/../../src/view/register.php';
         }
     }
 
@@ -68,17 +68,17 @@ class AuthController {
                 
         if (empty($token)) { // Se o token estiver vazio, mostrar a página de erro
             $error = "Token de ativação inválido."; 
-            require_once __DIR__ . '/../View/activation-error.php'; 
+            require_once __DIR__ . '/../../src/view/activation-error.php'; 
             return;
         } else {
             $userModel = new User();
             if ($userModel->activateAccount($token)) { // Se a ativação for bem-sucedida, mostrar a página de sucesso
                 $success = "Conta ativada com sucesso! Pode agora efetuar o login.";
-                require_once __DIR__ . '/../View/activation-success.php';
+                require_once __DIR__ . '/../../src/view/activation-success.php';
                 return;
             } else { // Se a ativação falhar, mostrar a página de erro
                 $error = "Token de ativação inválido ou a conta já foi ativada.";
-                require_once __DIR__ . '/../View/activation-error.php';
+                require_once __DIR__ . '/../../src/view/activation-error.php';
                 return;
             }
         }
@@ -86,7 +86,7 @@ class AuthController {
 
     // Mostra o formulário de Login (Fluxo 3)
     public function showLogin() {
-        require_once __DIR__ . '/../View/login.php'; //apenas mostra a View de Login, não processa o Login
+        require_once __DIR__ . '/../../src/view/login.php'; //apenas mostra a View de Login, não processa o Login
     }
 
    
@@ -96,7 +96,7 @@ class AuthController {
 
         if (empty($username) || empty($password)) {
             $error = "Preencha todos os campos.";
-            require_once __DIR__ . '/../View/login.php';
+            require_once __DIR__ . '/../../src/view/login.php';
             return;
         }
 
@@ -105,14 +105,14 @@ class AuthController {
 
         if (!$user) { // Se as credenciais forem inválidas, mostrar a página de login com erro
             $error = "Credenciais inválidas.";
-            require_once __DIR__ . '/../View/login.php';
+            require_once __DIR__ . '/../../src/view/login.php';
             return;
         }
 
         
         if ($user['is_active'] == 0) { // Se a conta não estiver ativada, mostrar a página de login com erro
             $error = "A sua conta ainda não foi ativada. Verifique o seu email.";
-            require_once __DIR__ . '/../View/login.php';
+            require_once __DIR__ . '/../../src/view/login.php';
             return;
         }
 
@@ -129,14 +129,14 @@ class AuthController {
             if ($jwtToken === null) { // Se não for possível obter o Token JWT, mostrar a página de login com erro
                 $error = "Erro ao obter o Token JWT da API.";
                 session_destroy(); 
-                require_once __DIR__ . '/../View/login.php';
+                require_once __DIR__ . '/../../src/view/login.php';
                 return;
             }
         
         } catch (\Exception $e) { // Se ocorrer algum erro ao comunicar com a API, mostrar a página de login com erro
             $error = "Erro ao comunicar com a API: " . $e->getMessage();
             session_destroy();
-            require_once __DIR__ . '/../View/login.php';
+            require_once __DIR__ . '/../../src/view/login.php';
             return;
         }
 
@@ -151,5 +151,12 @@ class AuthController {
         // Redireciona para o Lobby, que está na raiz ("/")
         header("Location: /");
         exit;
+    }
+
+    public function isAuthenticated() {
+        if (isset($_SESSION['user_id']) && isset($_SESSION['jwt_token'])) {
+            return true;
+        }
+        return false;
     }
 }

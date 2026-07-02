@@ -1,11 +1,11 @@
 <?php
 
-use src\Router\Router;
+use Router\Router;
 
 // Importação das tuas classes Controlador
-use src\Controller\AuthController;
-use src\Controller\ProfileController;
-use src\Controller\RoomController;
+use Controller\AuthController;
+use Controller\ProfileController;
+use Controller\RoomController;
 
 // O ficheiro retorna uma Closure para ser executada no index.php
 return function (Router $router) { // Recebe o objeto Router do index.php

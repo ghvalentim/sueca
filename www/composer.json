@@ -5,9 +5,12 @@
     },
     "autoload": {
         "psr-4": {
-            "src\\": "src/",
-            "src\\Controller\\": "src/Controller/",
-            "src\\Model\\": "src/Model/"
+            "Router\\": "app/Router/",
+            "Model\\": "app/Model/",
+            "Controller\\": "app/Controller/",
+            "Config\\": "app/Config/",
+            "Database\\": "app/Database/",
+            "Services\\": "app/Services/"
         }
     }
 }

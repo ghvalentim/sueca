@@ -1,8 +1,8 @@
 <?php
-namespace src\Model;
+namespace Model;
 
-use src\Services\JwtService;
-use src\Model\Database;
+use Services\JwtService;
+use Database\Database;
 
 class User {
 
@@ -37,15 +37,21 @@ class User {
 
     // Verifica as credenciais do utilizador (username e password) e retorna os dados do utilizador se forem válidas
     public function verifyCredentials(string $username, string $password) {
-        $db = Database::getConnection();
-        // Adicionado 'email' ao SELECT para podermos enviar à API
+        $db = Database::getConnection(); 
+        // Prepara uma declaração SQL para selecionar o utilizador com base no username fornecido
         $stmt = $db->prepare("SELECT id, username, password, is_active FROM users WHERE username = ?");
+        // Executa a declaração SQL com o username fornecido como parâmetro
         $stmt->execute([$username]);
+        // Retorna os dados do utilizador se as credenciais forem válidas, caso contrário retorna false
         $user = $stmt->fetch();
+        // Obtém o hash da password do utilizador pelo username
+        $getPasswordHash = $this->getPasswordHash($username);
 
-        if ($user && password_verify($password, $user['password'])) {
+        // Verifica se o utilizador existe e se a password fornecida corresponde ao hash armazenado na base de dados
+        if ($user && password_verify($password, $getPasswordHash)) {
+            // Se as credenciais forem válidas, retorna os dados do utilizador
             return $user;
-        }
+        } // Se as credenciais forem inválidas, retorna false
         return false;
     }
 
@@ -73,34 +79,35 @@ class User {
 
     // Obtém o token JWT da API para o utilizador, se as credenciais forem válidas
     public function getJwtToken(string $username, string $password) {
-        $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT email FROM users WHERE username = ? AND is_active = 1");
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
-
+        // Verifica as credenciais do utilizador
+         $user = $this->verifyCredentials($username, $password);
+         // Se as credenciais forem inválidas, retorna null
         if (!$user) {
             return null;
         }
 
-        if (!password_verify($password, $this->getPasswordHash($username))) {
-            return null;
-        }
-
+        $email = $this->findById($user['id'])['email']; // Obtém o email do utilizador a partir dos dados retornados pela função findById
+        // Se as credenciais forem válidas, obtém o token JWT da API usando a classe JwtService
         $jwtService = new JwtService();
-        $token = $jwtService->getToken($user['email'], $password);
+        // Obtém o token JWT da API usando o email do utilizador e a password fornecida
+        $token = $jwtService->getToken($email, $password);
+        // Se não for possível obter o token JWT da API, retorna null e registra um erro
         if ($token === null) {
             error_log('Falha ao obter o token JWT da API.');
             return null;
-        }
+        } // Se o token JWT for obtido com sucesso, retorna o token
         return $token;
     }
 
         // Obtém o hash da password do utilizador pelo username
-    public function getPasswordHash(string $username) {
-        $db = Database::getConnection();
+    public function getPasswordHash(string $username) { 
+        $db = Database::getConnection(); // Obtém a conexão com a base de dados usando a classe Database
         $stmt = $db->prepare("SELECT password FROM users WHERE username = ?");
+        // Prepara uma declaração SQL para selecionar o hash da password do utilizador com base no username fornecido
         $stmt->execute([$username]);
+        // Executa a declaração SQL com o username fornecido como parâmetro
         $user = $stmt->fetch();
+        // Retorna o hash da password se o utilizador for encontrado, caso contrário retorna null
         return $user ? $user['password'] : null;
     }
 

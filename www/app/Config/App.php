@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Config;
+namespace Config;
 
 class App {
     public static function apiURL(): string { // Retorna a URL da API definida no arquivo .env

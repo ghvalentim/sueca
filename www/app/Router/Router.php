@@ -1,5 +1,5 @@
 <?php
-namespace src\Router;
+namespace Router;
 
 class Router {
     private array $routes = []; // Armazena as rotas registradas, organizadas por método HTTP (GET, POST, etc.)

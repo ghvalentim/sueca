@@ -15,8 +15,8 @@ $dotenv->load();
 session_start();
 // Inicia a sessão do PHP para gerenciar dados de sessão do usuário
 
-use src\Router\Router;
-// Importa a classe Router do namespace src\Router
+//Importa a classe Router do namespace Router
+use Router\Router;
 
 $router = new Router();
 // Cria uma instância do roteador para gerenciar as rotas da aplicação

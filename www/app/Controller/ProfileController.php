@@ -1,7 +1,7 @@
 <?php
-namespace src\Controller;
+namespace Controller;
 
-use src\Model\User;
+use Model\User;
 
 class ProfileController {
     
@@ -18,7 +18,7 @@ class ProfileController {
         $userModel = new User();
         $user = $userModel->findById($_SESSION['user_id']);
         
-        require_once __DIR__ . '/../View/profile.php';
+        require_once __DIR__ . '/../../src/view/profile.php';
     }
 
     // Processa a atualização da password
@@ -42,6 +42,6 @@ class ProfileController {
         // Recarregar os dados atualizados para exibir a vista novamente
         $userModel = new User();
         $user = $userModel->findById($_SESSION['user_id']);
-        require_once __DIR__ . '/../View/profile.php';
+        require_once __DIR__ . '/../../src/view/profile.php';
     }
 }

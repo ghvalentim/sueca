@@ -13,4 +13,5 @@
     // Rotas do Jogo
     Route::group(['middleware' => 'api','prefix' => 'game'], function () {
         Route::post('{roomId}/start', [GameController::class, 'startGame']);
+        Route::get('{roomId}/state', [GameController::class, 'getState']);
     });
