@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     git \
     libonig-dev
 
+
 # Ativar o mod_rewrite do Apache para as rotas MVC funcionarem
 RUN a2enmod rewrite
 

@@ -1,8 +1,8 @@
 <?php
-namespace src\Model;
+namespace Model;
 
-use src\Services\JwtService;
-use src\Model\Database;
+use Services\JwtService;
+use Database\Database;
 
 class User {
 
@@ -37,22 +37,28 @@ class User {
 
     // Verifica as credenciais do utilizador (username e password) e retorna os dados do utilizador se forem válidas
     public function verifyCredentials(string $username, string $password) {
-        $db = Database::getConnection();
-        // Adicionado 'email' ao SELECT para podermos enviar à API
-        $stmt = $db->prepare("SELECT id, username, password, is_active FROM users WHERE username = ?");
+        $db = Database::getConnection(); 
+        // Prepara uma declaração SQL para selecionar o utilizador com base no username fornecido
+        $stmt = $db->prepare("SELECT id, username, email, password, is_active FROM users WHERE username = ?");
+        // Executa a declaração SQL com o username fornecido como parâmetro
         $stmt->execute([$username]);
+        // Retorna os dados do utilizador se as credenciais forem válidas, caso contrário retorna false
         $user = $stmt->fetch();
+        // Obtém o hash da password do utilizador pelo username
+        $getPasswordHash = $this->getPasswordHash($username);
 
-        if ($user && password_verify($password, $user['password'])) {
+        // Verifica se o utilizador existe e se a password fornecida corresponde ao hash armazenado na base de dados
+        if ($user && password_verify($password, $getPasswordHash)) {
+            // Se as credenciais forem válidas, retorna os dados do utilizador
             return $user;
-        }
+        } // Se as credenciais forem inválidas, retorna false
         return false;
     }
 
     // Obtém os detalhes do utilizador pelo ID
     public function findById(int $id) {
         $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT id, username, email, created_at FROM users WHERE id = ?");
+        $stmt = $db->prepare("SELECT id, username, email, avatar, bio, external_username, created_at FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
@@ -71,36 +77,26 @@ class User {
         return $stmt->execute([$hash, $id]);
     }
 
-    // Obtém o token JWT da API para o utilizador, se as credenciais forem válidas
-    public function getJwtToken(string $username, string $password) {
+    public function updateProfileInfo(int $id, string $avatar, string $bio, string $externalUsername) {
         $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT email FROM users WHERE username = ? AND is_active = 1");
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
+        $stmt = $db->prepare("UPDATE users SET avatar = ?, bio = ?, external_username = ? WHERE id = ?");
+        return $stmt->execute([$avatar, $bio, $externalUsername, $id]);
+    }
 
-        if (!$user) {
-            return null;
-        }
-
-        if (!password_verify($password, $this->getPasswordHash($username))) {
-            return null;
-        }
-
-        $jwtService = new JwtService();
-        $token = $jwtService->getToken($user['email'], $password);
-        if ($token === null) {
-            error_log('Falha ao obter o token JWT da API.');
-            return null;
-        }
-        return $token;
+    // Obtém o token JWT da API para o utilizador, se as credenciais forem válidas
+    public function getJwtTokenForUser(string $email, string $password) {
+        return JwtService::getToken($email, $password);
     }
 
         // Obtém o hash da password do utilizador pelo username
-    public function getPasswordHash(string $username) {
-        $db = Database::getConnection();
+    public function getPasswordHash(string $username) { 
+        $db = Database::getConnection(); // Obtém a conexão com a base de dados usando a classe Database
         $stmt = $db->prepare("SELECT password FROM users WHERE username = ?");
+        // Prepara uma declaração SQL para selecionar o hash da password do utilizador com base no username fornecido
         $stmt->execute([$username]);
+        // Executa a declaração SQL com o username fornecido como parâmetro
         $user = $stmt->fetch();
+        // Retorna o hash da password se o utilizador for encontrado, caso contrário retorna null
         return $user ? $user['password'] : null;
     }
 

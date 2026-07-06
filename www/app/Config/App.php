@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Config;
+namespace Config;
 
 class App {
     public static function apiURL(): string { // Retorna a URL da API definida no arquivo .env
@@ -9,6 +9,10 @@ class App {
 
     public static function appURL(): string { // Retorna a URL da aplicação definida no arquivo .env
         return $_ENV['APP_URL'];
+    }
+
+    public static function gameAPI(): string { // Retorna a URL da API de jogo definida no arquivo .env
+        return $_ENV['GAME_API_URL'];
     }
 
     public static function jwtTokenAPI(): string { // Retorna a URL da API para obtenção do token JWT definida no arquivo .env

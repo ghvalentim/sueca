@@ -18,6 +18,11 @@ RUN install-php-extensions pdo_mysql mbstring exif pcntl bcmath gd intl
 # Ativar o mod_rewrite do Apache para as rotas do Laravel funcionarem
 RUN a2enmod rewrite
 
+RUN printf 'RewriteEngine On\n\
+RewriteCond %%{HTTP:Authorization} . \n\
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%%{HTTP:Authorization}]\n' > /etc/apache2/conf-available/jwt_fix.conf \
+&& a2enconf jwt_fix
+
 # Instalar o Composer (gestor de pacotes do PHP)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
