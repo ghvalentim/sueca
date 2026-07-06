@@ -11,6 +11,10 @@ class App {
         return $_ENV['APP_URL'];
     }
 
+    public static function gameAPI(): string { // Retorna a URL da API de jogo definida no arquivo .env
+        return $_ENV['GAME_API_URL'];
+    }
+
     public static function jwtTokenAPI(): string { // Retorna a URL da API para obtenção do token JWT definida no arquivo .env
         $apiUrl = $_ENV['JWT_TOKEN_URL'];
         if (empty($apiUrl)) {

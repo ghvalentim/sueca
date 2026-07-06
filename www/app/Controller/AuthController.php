@@ -122,19 +122,23 @@ class AuthController {
 
         try {
             // 1. Tentar obter o Token JWT da API
-            $jwtToken = $userModel->getJwtToken($username, $password);
+            $jwtToken = $userModel->getJwtTokenForUser($user['email'], $password);
+            error_log($jwtToken);
             
-            $_SESSION['jwt_token'] = $jwtToken; // Guardar o Token JWT na sessão
 
             if ($jwtToken === null) { // Se não for possível obter o Token JWT, mostrar a página de login com erro
                 $error = "Erro ao obter o Token JWT da API.";
+                $_SESSION = []; // Limpar a sessão
                 session_destroy(); 
                 require_once __DIR__ . '/../../src/view/login.php';
                 return;
             }
+
+            $_SESSION['jwt_token'] = $jwtToken; // Guardar o Token JWT na sessão
         
         } catch (\Exception $e) { // Se ocorrer algum erro ao comunicar com a API, mostrar a página de login com erro
             $error = "Erro ao comunicar com a API: " . $e->getMessage();
+            $_SESSION = []; // Limpar a sessão
             session_destroy();
             require_once __DIR__ . '/../../src/view/login.php';
             return;

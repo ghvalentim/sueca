@@ -39,7 +39,7 @@ class User {
     public function verifyCredentials(string $username, string $password) {
         $db = Database::getConnection(); 
         // Prepara uma declaração SQL para selecionar o utilizador com base no username fornecido
-        $stmt = $db->prepare("SELECT id, username, password, is_active FROM users WHERE username = ?");
+        $stmt = $db->prepare("SELECT id, username, email, password, is_active FROM users WHERE username = ?");
         // Executa a declaração SQL com o username fornecido como parâmetro
         $stmt->execute([$username]);
         // Retorna os dados do utilizador se as credenciais forem válidas, caso contrário retorna false
@@ -58,7 +58,7 @@ class User {
     // Obtém os detalhes do utilizador pelo ID
     public function findById(int $id) {
         $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT id, username, email, created_at FROM users WHERE id = ?");
+        $stmt = $db->prepare("SELECT id, username, email, avatar, bio, external_username, created_at FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
@@ -77,26 +77,15 @@ class User {
         return $stmt->execute([$hash, $id]);
     }
 
-    // Obtém o token JWT da API para o utilizador, se as credenciais forem válidas
-    public function getJwtToken(string $username, string $password) {
-        // Verifica as credenciais do utilizador
-         $user = $this->verifyCredentials($username, $password);
-         // Se as credenciais forem inválidas, retorna null
-        if (!$user) {
-            return null;
-        }
+    public function updateProfileInfo(int $id, string $avatar, string $bio, string $externalUsername) {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("UPDATE users SET avatar = ?, bio = ?, external_username = ? WHERE id = ?");
+        return $stmt->execute([$avatar, $bio, $externalUsername, $id]);
+    }
 
-        $email = $this->findById($user['id'])['email']; // Obtém o email do utilizador a partir dos dados retornados pela função findById
-        // Se as credenciais forem válidas, obtém o token JWT da API usando a classe JwtService
-        $jwtService = new JwtService();
-        // Obtém o token JWT da API usando o email do utilizador e a password fornecida
-        $token = $jwtService->getToken($email, $password);
-        // Se não for possível obter o token JWT da API, retorna null e registra um erro
-        if ($token === null) {
-            error_log('Falha ao obter o token JWT da API.');
-            return null;
-        } // Se o token JWT for obtido com sucesso, retorna o token
-        return $token;
+    // Obtém o token JWT da API para o utilizador, se as credenciais forem válidas
+    public function getJwtTokenForUser(string $email, string $password) {
+        return JwtService::getToken($email, $password);
     }
 
         // Obtém o hash da password do utilizador pelo username

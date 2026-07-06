@@ -1,34 +1,40 @@
 <?php
+// ==========================================
+// [NOVO] MODO DETETIVE: Mostrar todos os erros
+// ==========================================
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-require_once __DIR__ . '/../vendor/autoload.php'; 
-// Carrega automaticamente as classes usando o autoloader do Composer
+// 1. Carregar dependências do Composer
+require_once __DIR__ . '/../vendor/autoload.php';
 
+// 2. Carregar variáveis de ambiente
 use Dotenv\Dotenv;
-// Carrega as variáveis de ambiente do arquivo .env
-
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
-// Cria uma instância do Dotenv apontando para o diretório raiz do projeto
-
 $dotenv->load();
-// Carrega as variáveis de ambiente definidas no arquivo .env para a superglobal $_ENV
 
+// 3. Iniciar Sessões
 session_start();
-// Inicia a sessão do PHP para gerenciar dados de sessão do usuário
 
-//Importa a classe Router do namespace Router
+// 4. Configuração Global de CORS
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+// 5. Configurar Fuso Horário
+date_default_timezone_set('Europe/Lisbon');
+
+// 6. Inicializar o Router e processar o pedido
 use Router\Router;
 
 $router = new Router();
-// Cria uma instância do roteador para gerenciar as rotas da aplicação
-
 (require __DIR__ . '/../routes/web.php')($router);
-// Carrega as rotas definidas no arquivo web.php e passa a instância do roteador para registrar as rotas
-
 $router->dispatch();
-// Dispara o roteador para processar a requisição atual e chamar o controlador apropriado
-
-// Define o fuso horário para Portugal
-date_default_timezone_set('Europe/Lisbon');
-
 
 ?>

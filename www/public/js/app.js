@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!gameBoard) return;
 
     // Vai buscar as variáveis que o PHP injetou no HTML
-    const jwtToken = gameBoard.getAttribute('jwt-token');
+    const jwtToken = gameBoard.getAttribute('data-jwt');
     const roomId = gameBoard.getAttribute('data-room-id');
-    const apiUrl = `http://api/api/game/${roomId}/game`;
+    const apiUrl = `http://localhost:8001/api/game/${roomId}/state`;
 
     const suitSymbols = { 'H': '♥', 'D': '♦', 'S': '♠', 'C': '♣' };
 
@@ -25,8 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: {
-                    'Authorization': 'Bearer ' + jwtToken,
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${jwtToken}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 }
             });
 

@@ -1,0 +1,11 @@
+.playing-card {
+            display: inline-block; width: 50px; height: 75px;
+            background: white; border: 1px solid #ccc; border-radius: 5px; margin: 3px;
+            text-align: center; line-height: 75px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); user-select: none; font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .playing-card:hover { transform: translateY(-10px); }
+        .suit-H, .suit-D { color: #e74c3c; } /* Copas e Ouros */
+        .suit-S, .suit-C { color: #2c3e50; } /* Espadas e Paus */
+        .text-shadow { text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }

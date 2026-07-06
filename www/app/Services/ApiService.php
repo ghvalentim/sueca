@@ -4,43 +4,74 @@ namespace Services;
 
 class ApiService {
 
-    // Faz uma requisição HTTP para a API, retornando a resposta decodificada em JSON
-    public function request(string $url, string $method, array $data = [], array $headers = []) {
-        // Inicializa uma sessão cURL
+     public static function doPostRequest(string $url, array $data = [], array $headers = []) {
         $ch = curl_init();
-
-        // Configura as opções da requisição cURL
         curl_setopt($ch, CURLOPT_URL, $url);
-        // Define a URL para a requisição cURL
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // Define que a resposta da requisição será retornada como string
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
-        // Define o método HTTP da requisição (GET, POST, PUT, DELETE, etc.)
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-        if (!empty($data)) { // Se houver dados a serem enviados na requisição (para métodos como POST ou PUT)
-        // Converte os dados em JSON e adiciona ao corpo da requisição
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            // Adiciona o cabeçalho Content-Type para indicar que o corpo da requisição é JSON
-            $headers[] = 'Content-Type: application/json';
-        }
-    // Adiciona os cabeçalhos HTTP à requisição, se houver
         if (!empty($headers)) {
-            // Adiciona os cabeçalhos HTTP à requisição
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); // Adiciona os cabeçalhos HTTP à requisição
+            $headers = array_values(array_unique($headers)); // Remove cabeçalhos duplicados, se houver
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            error_log('Cabeçalhos enviados na requisição POST: ' . json_encode($headers));
         }
 
-        // Executa a requisição
         $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        // Verifica se houve erro na requisição
-        if (curl_errno($ch)) {
-            error_log('Erro na requisição cURL: ' . curl_error($ch));
+        error_log('Resposta da API (POST): ' . $response);
+
+        $decodedResponse = json_decode($response, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log(json_last_error_msg());
+            curl_close($ch);
             return null;
         }
 
-        // Fecha a sessão cURL
         curl_close($ch);
 
-        return json_decode($response, true); // Retorna a resposta decodificada em JSON como array associativo
+        if ($httpCode != 200) {
+            error_log("HTTP $httpCode");
+            return null;
+        }
+
+        return $decodedResponse; // Retorna a resposta decodificada em JSON como array associativo
+    }
+
+    public static function doGetRequest(string $url, array $headers = []) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPGET, true);
+
+        if (!empty($headers)) {
+            $headers = array_values(array_unique($headers)); // Remove cabeçalhos duplicados, se houver
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            error_log('Cabeçalhos enviados na requisição GET: ' . json_encode($headers));
+        }
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        error_log('Resposta da API (GET): ' . $response);
+
+        $decodedResponse = json_decode($response, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log(json_last_error_msg());
+            curl_close($ch);
+            return null;
+        }
+
+        curl_close($ch);
+
+        if ($httpCode != 200) {
+            error_log("HTTP $httpCode");
+            return null;
+        }
+
+        return $decodedResponse; // Retorna a resposta decodificada em JSON como array associativo
     }
 }

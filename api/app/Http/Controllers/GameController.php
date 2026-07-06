@@ -80,11 +80,22 @@ class GameController extends Controller
         // SEGURANÇA: Mascarar as mãos. O jogador só recebe as suas próprias cartas!
         $hands = $game->hands;
         $myHand = $hands[$userId] ?? [];
+        $playerIds = array_keys($hands);
+
+        $playersinfo = DB::table('users')
+        ->whereIn('id',$playerIds)
+        ->get(['id','username','avatar'])
+        ->keyBy('id');
 
         // Para os adversários, enviamos apenas o número de cartas que eles têm na mão
         $cardCounts = [];
+        $publicPlayersInfo = [];
         foreach ($hands as $pId => $hand) {
             $cardCounts[$pId] = count($hand);
+            $publicPlayersInfo[$pId] = [
+                'username' => $playersinfo[$pId]->username ?? 'Desconhecido',
+                'avatar' => $playersinfo[$pId]->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($playersinfo[$pId]->username ?? 'D').'&background=198754&color=fff',
+            ];
         }
 
         return response()->json([
@@ -96,6 +107,7 @@ class GameController extends Controller
             'my_hand' => $myHand,
             'table_cards' => $game->table_cards,
             'card_counts' => $cardCounts,
+            'players_info' => $publicPlayersInfo,
             'team_a_score' => $game->team_a_score,
             'team_b_score' => $game->team_b_score
         ]);

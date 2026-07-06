@@ -2,7 +2,7 @@
 namespace Controller;
 
 use Model\Room;
-use Services\ApiService;
+use Services\GameService;
 use Controller\AuthController;
 
 class RoomController {
@@ -82,31 +82,33 @@ class RoomController {
         exit;
     }
 
-    public function startGame() {
-        // Verifica se o utilizador está autenticado e se possui um token JWT válido
-        $user = new AuthController();
-        if (!$user->isAuthenticated()) {
-            header("Location: /login");
+        public function startGame() {
+            // Verifica se o utilizador está autenticado e se possui um token JWT válido
+            $user = new AuthController();
+            if (!$user->isAuthenticated()) {
+                header("Location: /login");
+                exit;
+            }
+
+            $roomId = $_GET['id'] ?? null;
+            if ($roomId) { 
+                $apiURL = $_ENV['GAME_API_URL'] . "/$roomId/start";
+                $method = 'POST';
+                $postData = [];
+                $request = GameService::postRoom($roomId);
+                if ($request === null) {
+                    $error = "Erro ao iniciar o jogo na API.";
+                    //$roomModel = new Room();
+                    //$room = $roomModel->getRoomDetails($roomId);
+                    require_once __DIR__ . '/../../src/view/room.php';
+                    return;
+                } 
+                header("Location: /room?id=" . $roomId);
+                    exit;
+            }
+            header("Location: /");
             exit;
         }
-
-        $roomId = $_GET['id'] ?? null;
-        if ($roomId) { 
-            $apiURL = $_ENV['API_ROOMS_URL'] . "/$roomId/start";
-            $method = 'POST';
-            $postData = [];
-            $request = $this->callAPI($method, $apiURL, $postData); 
-            if ($request === null) {
-                $error = "Erro ao iniciar o jogo na API.";
-                require_once __DIR__ . '/../../src/view/room.php';
-                return;
-            } 
-             header("Location: /room?id=" . $roomId);
-                exit;
-        }
-        header("Location: /");
-        exit;
-    }
 
     public function leave() {
         $user = new AuthController();
@@ -154,17 +156,4 @@ class RoomController {
                     exit;
                 }
             }
-
-    public function callAPI(string $method, string $url, $data = null) {
-        $apiService = new ApiService();
-        $headers = [
-            'Authorization: Bearer ' . $_SESSION['jwt_token'],
-            'Accept: application/json'
-        ]; 
-        $data = $apiService->request($url, $method, $data, $headers);
-         if (!$data) { 
-            return null;
-        }
-        return $data;
-    }
 }

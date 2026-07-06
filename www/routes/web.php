@@ -34,6 +34,7 @@ return function (Router $router) { // Recebe o objeto Router do index.php
     // ==========================================
     $router->get('/profile', [ProfileController::class, 'show']);
     $router->post('/profile', [ProfileController::class, 'updatePassword']);
+    $router->post('/profile/update', [ProfileController::class, 'handlePost']);
 
     // ==========================================
     // Gestão de Salas e Jogo (Sprint 3 e 4)

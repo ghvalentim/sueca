@@ -11,7 +11,7 @@
     });
 
     // Rotas do Jogo
-    Route::group(['middleware' => 'api','prefix' => 'game'], function () {
-        Route::post('{roomId}/start', [GameController::class, 'startGame']);
-        Route::get('{roomId}/state', [GameController::class, 'getState']);
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/game/{roomId}/start', [GameController::class, 'startGame']);
+        Route::get('/game/{roomId}/state', [GameController::class, 'getState']);
     });
