@@ -1,211 +1,149 @@
-# TP-SUECA
+# 🃏 Sueca Online
 
-Projeto desenvolvido no âmbito da Unidade Curricular de **Desenvolvimento Web**.
+Projeto desenvolvido no âmbito da unidade curricular **Desenvolvimento para a Web II**.
 
-O objetivo é implementar uma plataforma para gestão e execução de partidas do jogo **Sueca**, recorrendo a uma arquitetura distribuída composta por um Portal Web e uma API especializada.
+A aplicação implementa uma solução web completa para o jogo **Sueca Online Multijogador**, organizada em três módulos:
 
----
+- **Portal Web** em **PHP Vanilla** com arquitetura MVC
+- **Motor de Jogo** em **Laravel** como API REST
+- **Interface de Cliente** em **JavaScript Vanilla**
 
-# Arquitetura
+O objetivo do projeto é demonstrar uma arquitetura híbrida com autenticação, gestão de utilizadores, lobby de salas e motor de jogo com comunicação assíncrona.
 
-O sistema encontra-se dividido em três serviços independentes:
+## Funcionalidades
 
-* **Portal Web** (PHP MVC)
-* **API** (Laravel)
-* **Base de Dados** (MySQL)
+### Portal Web
+- Registo de utilizadores
+- Login e logout
+- Recuperação de password
+- Ativação de conta por email
+- Gestão de perfil com avatar e biografia
+- Lobby com listagem de salas
+- Criação e entrada em salas
+- Sala de espera
+- Internacionalização em português e inglês
 
-Todos os serviços são executados em containers Docker e comunicam através da rede interna definida no Docker Compose.
+### Motor de Jogo
+- Autenticação stateless com JWT
+- Gestão de salas
+- Início da partida com 4 jogadores
+- Distribuição de 40 cartas e 10 cartas por jogador
+- Definição de trunfo
+- Validação de jogadas legais e ilegais
+- Resolução de vazas
+- Cálculo de pontuação
+- Determinação da equipa vencedora
 
-```text
-                Utilizador
-                     │
-                     ▼
-           Portal Web (PHP MVC)
-                     │
-         ┌───────────┴───────────┐
-         │                       │
-         ▼                       ▼
-    Base de Dados           API Laravel
-        MySQL              Motor da Sueca
-```
+### Interface de Jogo
+- Renderização do tabuleiro sem refresh
+- Seleção e jogada de cartas com clique
+- Atualização automática do estado do jogo
+- Manutenção do estado após recarregar a página
+- Ecrã final com vencedor e pontuação
 
----
+## Tecnologias
 
-# Responsabilidades
+- PHP 8+
+- Laravel 13
+- MySQL
+- JavaScript Vanilla
+- HTML5
+- CSS3
+- Bootstrap 5
+- Apache
+- JWT
+- PDO com Prepared Statements
+- cURL
+- Fetch API
 
-## Portal Web
-
-O Portal constitui a interface principal da aplicação e é responsável por:
-
-* Autenticação dos utilizadores;
-* Registo e ativação de contas por email;
-* Gestão de sessões;
-* Gestão do perfil;
-* Gestão de salas (Lobby);
-* Comunicação com a API;
-* Interface gráfica.
-
----
-
-## API
-
-A API implementa exclusivamente a lógica do jogo.
-
-As suas responsabilidades incluem:
-
-* Autenticação entre Portal e API através de JWT;
-* Gestão das partidas;
-* Validação das regras da Sueca;
-* Estado da partida;
-* Cálculo da pontuação;
-* Exposição dos endpoints REST.
-
----
-
-## Base de Dados
-
-O Portal e a API partilham a mesma instância MySQL.
-
-A separação de responsabilidades é efetuada ao nível da arquitetura da aplicação e da organização das tabelas, evitando duplicação de informação.
-
----
-
-# Estrutura do Projeto
+## Estrutura geral
 
 ```text
 .
-├── api/
-├── database/
-├── www/
-├── compose.yml
+├── api/            # Motor de jogo em Laravel
+├── app/            # Portal Web em PHP vanilla
+├── public/         # Assets públicos
+├── database/       # Scripts e estrutura da BD
+├── docker/         # Configuração dos containers
+├── compose.yml     # Orquestração dos serviços
 └── README.md
 ```
 
-## API
+## Requisitos
 
-Aplicação Laravel responsável pelo motor do jogo.
+- Docker e Docker Compose
+- ou, em alternativa:
+  - PHP 8+
+  - Composer
+  - MySQL
+  - Apache
 
-Principais componentes:
+## Instalação
 
-* Controllers
-* Models
-* Configuração JWT
-* Rotas REST
-* Migrations
-* Testes
+### 1. Clonar o repositório
 
----
+```bash
+git clone https://github.com/ghvalentim/sueca.git
+cd sueca
+```
 
-## Portal
+### 2. Subir os serviços
 
-Aplicação PHP MVC responsável pela interação com o utilizador.
+```bash
+docker compose up -d --build
+```
 
-Estrutura:
+### 3. Instalar dependências da API
 
-* Controllers
-* Models
-* Views
-* Recursos estáticos
-* Integração com a API
+```bash
+cd api
+composer install
+```
 
----
+### 4. Configurar o ambiente
 
-# Tecnologias
+Criar o ficheiro `.env` para o Portal Web e para a API com as credenciais corretas de:
 
-## Backend
+- base de dados
+- URL da aplicação
+- JWT
+- SMTP
+- restantes variáveis do projeto
 
-* PHP 8
-* Laravel
-* MySQL
-* Apache
+### 5. Executar as migrations da API
 
-## Infraestrutura
+```bash
+php artisan migrate
+```
 
-* Docker
-* Docker Compose
+## Acesso local
 
-## Autenticação
+- **Portal Web:** `http://localhost:8000`
+- **API Laravel:** `http://localhost:8001`
 
-* JSON Web Token (JWT)
-* PHPMailer
+## Fluxo de autenticação
 
----
+O login é feito no Portal Web, que envia as credenciais para a API através de **cURL**. Se os dados forem válidos, a API devolve um **JWT**, que fica guardado na sessão do utilizador para ser reutilizado nos pedidos ao motor de jogo.
 
-# Funcionalidades Implementadas
+## Regras de implementação seguidas
 
-* Infraestrutura Docker
-* Portal MVC
-* Sistema de autenticação
-* Login e Logout
-* Registo de utilizadores
-* Ativação de contas por email
-* Perfil de utilizador
-* Estrutura inicial do Lobby
-* Infraestrutura da API
-* Estrutura inicial do motor do jogo
+- Portal Web desenvolvido em **PHP vanilla**
+- Motor de Jogo desenvolvido em **Laravel**
+- Interface de Cliente desenvolvida em **JavaScript vanilla**
+- Persistência centralizada numa única base de dados MySQL
+- Comunicação assíncrona com a API através de **Fetch API**
+- Comunicação servidor-a-servidor com **cURL** no login
+- CORS configurado para comunicação entre módulos
+- Uso de sessões, JWT e validação de dados
 
----
+## Entrega final
 
-# Funcionalidades em Desenvolvimento
+Este repositório corresponde à versão final do projeto.
 
-* Configuração completa do JWT
-* Integração Portal ⇄ API
-* Motor da Sueca
-* Gestão das salas
-* Frontend assíncrono
+Tag de entrega: `v-final`
 
----
+## Autor
 
-# Fluxo de Desenvolvimento
+**Gabriel Valentim Carvalho**
 
-O projeto segue GitHub Flow.
-
-Cada funcionalidade é desenvolvida através do seguinte ciclo:
-
-1. Criação de uma Issue.
-2. Criação de uma branch `feature/*`.
-3. Desenvolvimento da funcionalidade.
-4. Commits semânticos (Conventional Commits).
-5. Pull Request para a branch `dev`.
-6. Revisão.
-7. Merge.
-8. Encerramento automático da Issue.
-
----
-
-# Versionamento
-
-O projeto utiliza Semantic Versioning.
-
-As integrações são realizadas na branch `dev`.
-
-A branch `main` contém apenas versões estáveis.
-
----
-
-# Estado Atual
-
-## Concluído
-
-* Infraestrutura do projeto
-* Portal MVC
-* Sistema de autenticação
-* Login e Logout
-
-## Em desenvolvimento
-
-* JWT
-* Comunicação Portal ⇄ API
-
-## Planeado
-
-* Perfil
-* Lobby
-* Motor da Sueca
-* Frontend Assíncrono
-
----
-
-# Licença
-
-Projeto académico desenvolvido para fins educativos no âmbito da Unidade Curricular de Desenvolvimento Web.
+Projeto académico desenvolvido para a unidade curricular **Desenvolvimento para a Web II**.
