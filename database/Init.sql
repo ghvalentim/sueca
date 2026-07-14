@@ -2,8 +2,16 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
+    avatar VARCHAR(255),
+    bio TEXT,
+    discord VARCHAR(50),
+    steam VARCHAR(50),
+    instagram VARCHAR(50),
+    games_played INT DEFAULT 0,
+    games_won INT DEFAULT 0,
     password VARCHAR(255) NOT NULL,
     activation_token VARCHAR(64),
+    recovery_token VARCHAR(64),
     is_active TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
