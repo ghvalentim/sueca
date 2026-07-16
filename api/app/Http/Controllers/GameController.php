@@ -98,8 +98,7 @@ class GameController extends Controller
     }
 
     // [RF24] Realizar Jogada e Aplicar Regras da Sueca
-    public function playCard(Request $request, int $roomId)
-    {
+    public function playCard(Request $request, int $roomId) {
         // [MODIFICADO] latest('id')
         $game = Game::where('room_id', $roomId)->latest('id')->first();
         if (!$game) return response()->json(['error' => 'Jogo não encontrado'], 404);
@@ -125,23 +124,12 @@ class GameController extends Controller
             $tableCards = [];
         }
 
-        // REGRA: ASSISTIR AO NAIPE
-        if (count($tableCards) > 0) {
-            $leadCard = reset($tableCards);
-            $leadSuit = explode('-', $leadCard)[0];
-            $playedSuit = explode('-', $card)[0];
+        $processHandResult = $this->processHumanHand($myHand, $tableCards, $card);
 
-            if ($playedSuit !== $leadSuit) {
-                // Verificar se o jogador tem alguma carta do naipe inicial na mão
-                foreach ($myHand as $c) {
-                    if (str_starts_with($c, $leadSuit . '-')) {
-                        return response()->json(['error' => 'Regra da Sueca: És obrigado a assistir ao naipe (jogar ' . $leadSuit . ').'], 400);
-                    }
-                }
-            }
+        if ($processHandResult) {
+            return $processHandResult;
         }
 
-        // Move a carta da mão para a mesa
         $tableCards[$userId] = $card;
         $hands[$userId] = array_values(array_diff($myHand, [$card]));
         
@@ -151,103 +139,94 @@ class GameController extends Controller
         $playerIds = array_keys($hands);
         $myIndex = array_search($userId, $playerIds);
 
-        // AVALIAR FIM DA VAZA (4 CARTAS)
-        if (count($tableCards) === 4) {
-            $winnerId = $this->calculateTrickWinner($tableCards, $game->trump_suit);
-            $points = $this->calculateTrickPoints($tableCards);
-
-            // Adicionar pontos à Equipa A (Jogadores 0 e 2) ou Equipa B (Jogadores 1 e 3)
-            if ($winnerId === $playerIds[0] || $winnerId === $playerIds[2]) {
-                $game->team_a_score += $points;
-            } else {
-                $game->team_b_score += $points;
-            }
-
-            // O vencedor da vaza é o primeiro a jogar na próxima rodada
-            $game->current_player_id = $winnerId;
-            $game->trick_count += 1;
-
-            if ($game->trick_count === 10) {
-                DB::table('rooms')->where('id', $roomId)->update(['status' => 'Finished']);
-                $game->current_player_id = null; // Trava o jogo
-                $isTeamAWinner = $game->team_a_score > $game->team_b_score;
-                $isTeamBWinner = $game->team_b_score > $game->team_a_score;
-
-                foreach ($playerIds as $index => $pId) {
-                    DB::table('users')->where('id', $pId)->increment('games_played');
-                    if ($isTeamAWinner && ($index === 0 || $index === 2)) {
-                        DB::table('users')->where('id', $pId)->increment('games_won');
-                    } elseif ($isTeamBWinner && ($index === 1 || $index === 3)) {
-                        DB::table('users')->where('id', $pId)->increment('games_won');
-                    }
-
-                    }
-                }
-
-        } else {
-            // Jogo continua na mesma vaza, passa a vez ao próximo (sentido anti-horário)
-            $game->current_player_id = $playerIds[($myIndex + 1) % 4];
-        }
+        $this->processTrick($tableCards, $game, $playerIds, $roomId, $myIndex);
 
         $game->save();
 
         return response()->json(['success' => true]);
     }
 
-    // [NOVO] Lógica para o Bot jogar automaticamente
-    public function playBot(int $roomId)
-    {
-        // [MODIFICADO] latest('id')
+    public function playBot(int $roomId) {
         $game = Game::where('room_id', $roomId)->latest('id')->first();
         if (!$game) return response()->json(['error' => 'Jogo não encontrado'], 404);
 
         $botId = $game->current_player_id;
         $botUser = DB::table('users')->where('id', $botId)->first();
 
-        // Segurança: Confirmar que a vez pertence realmente a um bot
         if (!$botUser || !str_starts_with($botUser->username, 'Bot_')) {
             return response()->json(['error' => 'Não é a vez de um bot.'], 403);
         }
-
+    
         $hands = $game->hands;
         $botHand = $hands[$botId];
         $tableCards = $game->table_cards ?? [];
 
-        // Limpar a mesa se já estiverem 4 cartas da ronda anterior
         if (count($tableCards) === 4) {
             $tableCards = [];
         }
 
-        // REGRA DA SUECA: Assistir ao naipe
-        $validCards = $botHand;
-        if (count($tableCards) > 0) {
-            $leadCard = reset($tableCards);
-            $leadSuit = explode('-', $leadCard)[0];
-            
-            // Filtra as cartas do bot para ver se ele tem o naipe pedido
-            $suitCards = array_filter($botHand, fn($c) => str_starts_with($c, $leadSuit . '-'));
-            
-            if (count($suitCards) > 0) {
-                // Se tiver, é obrigado a jogar uma delas
-                $validCards = $suitCards;
-            }
-        }
+        $validCards = $this->processBotHand($botHand, $tableCards);
 
-        // O Bot escolhe uma carta aleatória dentre as válidas
         $cardToPlay = $validCards[array_rand($validCards)];
-
-        // Move a carta para a mesa e retira da mão do bot
         $tableCards[$botId] = $cardToPlay;
         $hands[$botId] = array_values(array_diff($botHand, [$cardToPlay]));
-        
         $game->table_cards = $tableCards;
         $game->hands = $hands;
-
         $playerIds = array_keys($hands);
         $myIndex = array_search($botId, $playerIds);
 
-        // AVALIAR VAZA (Exatamente igual ao Humano)
+
+        $this->processTrick($tableCards, $game, $playerIds, $roomId, $myIndex);
+        $game->save();
+        return response()->json(['success' => true, 'bot_played' => $cardToPlay]);
+    }
+
+
+    public function processHumanHand(array $hand, array $tableCards, string $card) {
+        if(count($tableCards) === 0) {
+            return null;
+        }
+
+        $leadCard = reset($tableCards);
+        $leadSuit = explode('-', $leadCard)[0];
+        $playedSuit = explode('-', $card)[0];
+
+        if ($playedSuit === $leadSuit) {
+            return null;
+        }
+
+        foreach ($hand as $c) {
+            if (str_starts_with($c, $leadSuit . '-')) {
+                return response()->json(['error' => 'Regra da Sueca: És obrigado a assistir ao naipe (jogar ' . $leadSuit . ').'], 400);
+            }
+        }
+
+        return null;
+    }
+    
+    public function processBotHand(array $playerHand, array $tableCards): array {
+        if (count($tableCards) > 0) {
+            $leadCard = reset($tableCards);
+            $leadSuit = explode('-', $leadCard)[0];
+
+            $suitCards = array_filter(
+            $playerHand,
+            fn($c) => str_starts_with($c, $leadSuit . '-')
+            );
+
+        if (!empty($suitCards)) {
+            return array_values($suitCards);
+            }
+        }
+
+        return $playerHand;
+    }
+
+ 
+    public function processTrick(array $tableCards, Game $game, array $playerIds, int $roomId, int $myIndex): void {
+
         if (count($tableCards) === 4) {
+            
             $winnerId = $this->calculateTrickWinner($tableCards, $game->trump_suit);
             $points = $this->calculateTrickPoints($tableCards);
 
@@ -258,19 +237,36 @@ class GameController extends Controller
             }
 
             $game->current_player_id = $winnerId;
-            $game->trick_count += 1;
+            $game->trick_count+= 1;
 
             if ($game->trick_count === 10) {
-                DB::table('rooms')->where('id', $roomId)->update(['status' => 'Finished']);
+                DB::table('rooms')
+                    ->where('id', $roomId)
+                    ->update(['status' => 'Finished']);
+
                 $game->current_player_id = null;
+                $isTeamAWinner = $game->team_a_score > $game->team_b_score;
+                $isTeamBWinner = $game->team_b_score > $game->team_a_score;
+
+                $this->increasePlayerStats($playerIds, $isTeamAWinner, $isTeamBWinner);
             }
+
         } else {
+
             $game->current_player_id = $playerIds[($myIndex + 1) % 4];
+
         }
+    }
 
-        $game->save();
-
-        return response()->json(['success' => true, 'bot_played' => $cardToPlay]);
+    public function increasePlayerStats(array $playerIds, bool $isTeamAWinner, bool $isTeamBWinner): void {
+        foreach ($playerIds as $index => $pId) {
+            DB::table('users')->where('id', $pId)->increment('games_played');
+            if (($index === 0 || $index === 2) && $isTeamAWinner) {
+                DB::table('users')->where('id', $pId)->increment('games_won');
+            } elseif (($index === 1 || $index === 3) && $isTeamBWinner) {
+                DB::table('users')->where('id', $pId)->increment('games_won');
+            }
+        }
     }
 
     private function calculateTrickWinner(array $tableCards, string $trumpSuit) {
