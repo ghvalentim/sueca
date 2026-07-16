@@ -14,11 +14,6 @@ global $i18n;
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
-    <style>
-        /* Pequeno ajuste para os cartões de sala pulsarem ao passar o rato */
-        .room-card { transition: transform 0.2s ease, box-shadow 0.2s ease; border-radius: 12px; }
-        .room-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.15) !important; }
-    </style>
 </head>
 <body class="bg-welcome bg-body-tertiary d-flex flex-column min-vh-100">
 

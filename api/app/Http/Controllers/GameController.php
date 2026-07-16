@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
-    public function startGame(Request $request, int $roomId)
+    public function startGame(int $roomId)
     {
         $room = DB::table('rooms')->where('id', $roomId)->first();
         
@@ -150,6 +150,7 @@ class GameController extends Controller
         $game = Game::where('room_id', $roomId)->latest('id')->first();
         if (!$game) return response()->json(['error' => 'Jogo não encontrado'], 404);
 
+
         $botId = $game->current_player_id;
         $botUser = DB::table('users')->where('id', $botId)->first();
 
@@ -270,7 +271,7 @@ class GameController extends Controller
     }
 
     private function calculateTrickWinner(array $tableCards, string $trumpSuit) {
-        $cardPower = ['A' => 10, '7' => 9, 'K' => 8, 'J' => 7, 'Q' => 6, '6' => 5, '5' => 4, '4' => 3, '3' => 2, '2' => 1];
+            $cardPower = ['A' => 10, '7' => 9, 'K' => 8, 'J' => 7, 'Q' => 6, '6' => 5, '5' => 4, '4' => 3, '3' => 2, '2' => 1];
         $leadCard = reset($tableCards);
         $leadSuit = explode('-', $leadCard)[0];
         

@@ -3,25 +3,29 @@
 namespace Config;
 
 class App {
-    public static function apiURL(): string { // Retorna a URL da API definida no arquivo .env
+    public static function apiURL(): string {
         return $_ENV['API_URL'];
     }
 
-    public static function appURL(): string { // Retorna a URL da aplicação definida no arquivo .env
+    public static function appURL(): string {
         return $_ENV['APP_URL'];
     }
 
-    public static function gameAPI(): string { // Retorna a URL da API de jogo definida no arquivo .env
+    public static function gameAPI(): string {
         return $_ENV['GAME_API_URL'];
     }
 
-    public static function jwtTokenAPI(): string { // Retorna a URL da API para obtenção do token JWT definida no arquivo .env
+    public static function jwtTokenAPI(): string {
         $apiUrl = $_ENV['JWT_TOKEN_URL'];
         if (empty($apiUrl)) {
             error_log('JWT_TOKEN_URL não definido no arquivo .env');
             return '';
         }
         return $apiUrl;
+    }
+
+    public static function externalGameAPI(): string {
+        return $_ENV['EXTERNAL_GAME_API_URL'];
     }
 }
 

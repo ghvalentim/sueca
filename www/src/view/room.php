@@ -102,7 +102,7 @@ global $i18n;
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4" id="game-board"
                  data-jwt="<?= htmlspecialchars($_SESSION['jwt_token'] ?? '') ?>"
                  data-room-id="<?= htmlspecialchars($room['id']) ?>"
-                 data-external-game-api-url="<?= htmlspecialchars($_ENV['EXTERNAL_GAME_API_URL'] ?? '') ?>">
+                 data-external-game-api-url="<?= htmlspecialchars(Config\App::externalGameAPI()) ?>">
 
                 <div class="card-body p-4" style="background-color: #1a252f;">
 
