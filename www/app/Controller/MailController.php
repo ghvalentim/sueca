@@ -26,14 +26,11 @@ class MailController {
             $mail->Password   = $password;
             $mail->Port       = $port;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->SMTPDebug = 3; // Desativar debug para produção
-            $mail->Debugoutput = 'error_log'; // Log de erros para o log do PHP
-
-            // Destinatário e remetente
+            $mail->SMTPDebug = 1; 
+            $mail->Debugoutput = 'error_log'; 
             $mail->setFrom($from, $fromName);
             $mail->addAddress($toEmail);
 
-            // Conteúdo do Email
             $mail->isHTML(true);
             $mail->CharSet = 'UTF-8';
             $mail->Subject = 'Ativação de Conta';
@@ -58,7 +55,7 @@ class MailController {
         $fromName = $_ENV['MAIL_FROM_NAME'] ?? '';
 
         try {
-            // Configurações do Servidor SMTP
+            
             $mail->isSMTP();
             $mail->Host       = $host;
             $mail->SMTPAuth   = true;
@@ -66,14 +63,11 @@ class MailController {
             $mail->Password   = $password;
             $mail->Port       = $port;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->SMTPDebug = 3; // Desativar debug para produção
-            $mail->Debugoutput = 'error_log'; // Log de erros para o log do PHP
-
-            // Destinatário e remetente
+            $mail->SMTPDebug = 1;
+            $mail->Debugoutput = 'error_log';
             $mail->setFrom($from, $fromName);
             $mail->addAddress($toEmail);
 
-            // Conteúdo do Email
             $mail->isHTML(true);
             $mail->CharSet = 'UTF-8';
             $mail->Subject = 'Recuperação de Conta';

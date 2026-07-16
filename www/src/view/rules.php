@@ -22,43 +22,8 @@ $sections = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/rules.css">
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
-    <style>
-        .hero-rules {
-            border: 1px solid rgba(241,196,15,.25);
-        }
-        .rule-card { transition: transform .18s ease, box-shadow .18s ease; scroll-margin-top: 90px; }
-        .rule-card:hover { box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.06) !important; }
-        .toc-link {
-            display:flex; align-items:center; gap:.6rem;
-            padding:.55rem .85rem; border-radius:.75rem;
-            color:var(--bs-body-color); text-decoration:none;
-            font-weight:500; transition:background .15s ease, transform .15s ease;
-        }
-        .toc-link:hover { background: var(--bs-body-secondary-bg); transform: translateX(3px); }
-        .toc-link.active { background: var(--bs-body-secondary-bg); font-weight:700; }
-        .card-value {
-            display:inline-flex; align-items:center; justify-content:center;
-            width:38px; height:52px; border-radius:.5rem;
-            background:#fff; color:#222; border:1px solid rgba(0,0,0,.1);
-            font-weight:700; box-shadow:0 2px 4px rgba(0,0,0,.06);
-        }
-        .suit-tile {
-            display:flex; align-items:center; gap:.75rem;
-            padding:.85rem 1rem; border-radius:1rem;
-            background: var(--bs-body-bg); border:1px solid rgba(0,0,0,.06);
-        }
-        .step-num {
-            width:32px; height:32px; border-radius:50%;
-            background:linear-gradient(135deg,#27ae60,#145a32);
-            color:#fff; display:inline-flex; align-items:center; justify-content:center;
-            font-weight:700; flex-shrink:0;
-        }
-        .score-row td { vertical-align: middle; }
-        @media (min-width: 992px) {
-            .toc-sticky { position: sticky; top: 90px; }
-        }
-    </style>
 </head>
 <body class="bg-welcome bg-body-tertiary d-flex flex-column min-vh-100">
 
@@ -257,21 +222,6 @@ $sections = [
 
     <script src="../js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Realce ativo no índice ao fazer scroll
-        const links = document.querySelectorAll('#rules-toc .toc-link');
-        const sections = [...document.querySelectorAll('.rule-card[id]')];
-        const setActive = (id) => links.forEach(l => l.classList.toggle('active', l.dataset.target === id));
-        const io = new IntersectionObserver((entries) => {
-            entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); });
-        }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-        sections.forEach(s => io.observe(s));
-        // Scroll suave
-        links.forEach(l => l.addEventListener('click', (ev) => {
-            const id = l.getAttribute('href').slice(1);
-            const el = document.getElementById(id);
-            if (el) { ev.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); history.replaceState(null, '', '#' + id); }
-        }));
-    </script>
+    <script src="../js/rules.js"></script>
 </body>
 </html>

@@ -68,3 +68,7 @@
 
 .room-card { transition: transform 0.2s ease, box-shadow 0.2s ease; border-radius: 12px; }
 .room-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.15) !important; }
+
+        .stat-tile { transition: transform .2s ease; }
+        .stat-tile:hover { transform: translateY(-3px); }
+        .avatar-ring { padding: 4px; border-radius: 50%; background: linear-gradient(135deg, var(--bs-success), var(--bs-info)); }

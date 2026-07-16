@@ -8,7 +8,6 @@ use Controller\AuthController;
 
 class RoomController {
     
-    // Apresenta o Lobby geral
     public function showLobby() {
         $rooms = [];
         if (isset($_SESSION['user_id'])) {
@@ -25,7 +24,6 @@ class RoomController {
         require_once __DIR__ . '/../../src/view/rules.php';
     }
 
-    // Processa a criação de sala
     public function create() {
         if (!isset($_SESSION['user_id'])) {
             header("Location: /login");
@@ -63,7 +61,6 @@ class RoomController {
         exit;
     }
 
-    // Processa o clique no botão "Entrar"
     public function join() {
         $user = new AuthController();
         if (!$user->isAuthenticated()) {
@@ -87,7 +84,6 @@ class RoomController {
         exit;
     }
     
-    // Mostra o ecrã interno de uma sala (O Tabuleiro da Sueca futuramente)
     public function showRoom() {
         $user = new AuthController();
         if (!$user->isAuthenticated()) {

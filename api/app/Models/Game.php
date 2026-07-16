@@ -14,7 +14,6 @@ class Game extends Model
         'current_player_id', 'starting_player_id', 'team_a_score', 'team_b_score', 'trick_count'
     ];
 
-    // O Laravel converte automaticamente as colunas JSON em Arrays de PHP (e vice-versa)
     protected $casts = [
         'hands' => 'array',
         'table_cards' => 'array',

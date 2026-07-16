@@ -11,13 +11,8 @@ global $i18n;
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/gameboard.css">
+    <link rel="stylesheet" href="../css/room.css">
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
-    <style>
-        .player-slot { transition: transform .2s ease; }
-        .player-slot:hover { transform: translateY(-2px); }
-        .pulse-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#27ae60; box-shadow:0 0 0 rgba(39,174,96,.6); animation: pulse 1.6s infinite; }
-        @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(39,174,96,.6)} 70%{box-shadow:0 0 0 12px rgba(39,174,96,0)} 100%{box-shadow:0 0 0 0 rgba(39,174,96,0)} }
-    </style>
 </head>
 <body class="bg-welcome bg-body-tertiary d-flex flex-column min-vh-100">
 

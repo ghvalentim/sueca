@@ -29,28 +29,26 @@ class Room {
         
     }
 
-    // Cria a sala e insere automaticamente o dono como o 1º jogador
     public function createRoom(string $name, int $ownerId) {
         $db = Database::getConnection();
-        try { // Inicia uma transação para garantir que ambas as operações (criação da sala e inserção do dono) sejam atômicas
+        try {
             $db->beginTransaction(); 
             
             $stmt = $db->prepare("INSERT INTO rooms (name, owner_id, status) VALUES (?, ?, 'Waiting')");
             $stmt->execute([$name, $ownerId]);
-            $roomId = $db->lastInsertId(); // Obtém o ID da sala recém-criada
+            $roomId = $db->lastInsertId();
             
             $stmt2 = $db->prepare("INSERT INTO room_players (room_id, user_id) VALUES (?, ?)");
             $stmt2->execute([$roomId, $ownerId]);
             
-            $db->commit(); // Confirma a transação, garantindo que ambas as operações sejam aplicadas ao banco de dados
-            return $roomId; // Retorna o ID da sala recém-criada
+            $db->commit();
+            return $roomId;
         } catch (\Exception $e) {
-            $db->rollBack(); // Se ocorrer algum erro durante a transação, desfaz todas as operações realizadas até o momento
+            $db->rollBack();
             return false;
         }
     }
 
-    // Processa a entrada de um jogador na sala, garantindo que o limite é 4
     public function joinRoom(int $roomId, int $userId) {
         $db = Database::getConnection();
         
@@ -59,22 +57,18 @@ class Room {
         $room = $stmt->fetch();
 
         if ($room && $room['status'] === 'Waiting' && $room['count'] < 4) {
-            // Verifica se o jogador já está lá dentro
             $check = $db->prepare("SELECT 1 FROM room_players WHERE room_id = ? AND user_id = ?");
             $check->execute([$roomId, $userId]);
             
-            if (!$check->fetch()) { // Se o jogador não estiver na sala, insere-o na tabela room_players
+            if (!$check->fetch()) {
                 $insert = $db->prepare("INSERT INTO room_players (room_id, user_id) VALUES (?, ?)");
                 $insert->execute([$roomId, $userId]);
             }
-            error_log("User $userId joined room $roomId.");
             return true;
         }
-        error_log("Failed to join room $roomId for user $userId. Room status: " . ($room['status'] ?? 'N/A') . ", Player count: " . ($room['count'] ?? 'N/A'));
         return false;
     }
 
-    // Traz os dados da sala e a lista de jogadores atuais
     public function getRoomDetails(int $roomId) {
         $db = Database::getConnection();
         $stmt = $db->prepare("SELECT r.*, u.username as owner_name FROM rooms r JOIN users u ON r.owner_id = u.id WHERE r.id = ?");
@@ -111,7 +105,7 @@ class Room {
         $stmt = $db->prepare("DELETE FROM rooms WHERE id = ?");
         $stmt->execute([$roomId]);
         error_log("Attempted to delete room $roomId. Rows affected: " . $stmt->rowCount());
-        return $stmt->rowCount() > 0; // Retorna true se a sala foi deletada, false caso contrário
+        return $stmt->rowCount() > 0;
     }
 
     public function deleteIfEmpty(int $roomId) {
@@ -119,36 +113,35 @@ class Room {
         $stmt = $db->prepare("DELETE FROM rooms WHERE id = ? AND NOT EXISTS (SELECT 1 FROM room_players WHERE room_id = ?)");
         $stmt->execute([$roomId, $roomId]);
         error_log("Attempted to delete room $roomId if empty. Rows affected: " . $stmt->rowCount());
-        return $stmt->rowCount() > 0; // Retorna true se a sala foi deletada, false caso contrário
+        return $stmt->rowCount() > 0;
     }
 
     public function removeBotFromRoom(int $roomId) {
         $db = Database::getConnection();
         $stmt = $db->prepare("DELETE rp FROM room_players rp JOIN users u ON rp.user_id = u.id WHERE rp.room_id = ? AND u.username LIKE 'Bot_%'");
         $stmt->execute([$roomId]);
-        return $stmt->rowCount() > 0; // Retorna true se algum bot foi removido, false caso contrário
+        return $stmt->rowCount() > 0;
     }
 
         public function insertBotIntoRoom(int $roomId) {
-            $bot = User::getBotUser(); // Obtém a lista de bots disponíveis
+            $bot = User::getBotUser();
             if (!$bot) {
                 error_log("No bot user found to insert into room $roomId.");
                 return false;
             } else {
-                $botCount = count($bot); // Conta quantos bots existem
+                $botCount = count($bot);
 
-                while ($botCount < 3) { // Enquanto houver menos de 3 bots, insere mais bots na sala
-                    foreach ($bot as $b) { // Itera sobre cada bot disponível
-                        $this->joinRoom($roomId, $b['id']); // Insere o bot na sala
-                        $botCount++; // Incrementa o contador de bots
-                        if ($botCount >= 3) break; // Sai do loop se já houver 3 bots na sala
+                while ($botCount < 3) {
+                    foreach ($bot as $b) {
+                        $this->joinRoom($roomId, $b['id']);
+                        $botCount++;
+                        if ($botCount >= 3) break;
                     }
 
-                    // Verifica novamente quantos bots existem na sala após a inserção
                     $stmt = Database::getConnection()->prepare("SELECT COUNT(*) FROM room_players rp JOIN users u ON rp.user_id = u.id WHERE rp.room_id = ? AND u.username LIKE 'Bot_%'");
                     $stmt->execute([$roomId]);
-                    $botCount = (int) $stmt->fetchColumn(); // Atualiza o contador de bots com a contagem atual na sala
-                } // Sai do loop quando houver 3 bots na sala
+                    $botCount = (int) $stmt->fetchColumn();
+                } 
             }
 
             return true;

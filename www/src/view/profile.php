@@ -13,11 +13,6 @@ global $i18n;
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../../public/css/style.css">
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
-    <style>
-        .stat-tile { transition: transform .2s ease; }
-        .stat-tile:hover { transform: translateY(-3px); }
-        .avatar-ring { padding: 4px; border-radius: 50%; background: linear-gradient(135deg, var(--bs-success), var(--bs-info)); }
-    </style>
 </head>
 <body class="bg-welcome bg-body-tertiary d-flex flex-column min-vh-100 profile-body">
 

@@ -12,7 +12,7 @@ class ApiService {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
         if (!empty($headers)) {
-            $headers = array_values(array_unique($headers)); // Remove cabeçalhos duplicados, se houver
+            $headers = array_values(array_unique($headers));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             error_log('Cabeçalhos enviados via POST: ' . json_encode($headers));
         }
@@ -37,7 +37,7 @@ class ApiService {
             return null;
         }
 
-        return $decodedResponse; // Retorna a resposta decodificada em JSON como array associativo
+        return $decodedResponse;
     }
 
     public static function doGetRequest(string $url, array $headers = []) {
@@ -47,7 +47,7 @@ class ApiService {
         curl_setopt($ch, CURLOPT_HTTPGET, true);
 
         if (!empty($headers)) {
-            $headers = array_values(array_unique($headers)); // Remove cabeçalhos duplicados, se houver
+            $headers = array_values(array_unique($headers));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             error_log('Cabeçalhos enviados na requisição GET: ' . json_encode($headers));
         }
@@ -72,6 +72,6 @@ class ApiService {
             return null;
         }
 
-        return $decodedResponse; // Retorna a resposta decodificada em JSON como array associativo
+        return $decodedResponse;
     }
 }

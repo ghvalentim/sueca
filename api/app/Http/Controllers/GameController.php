@@ -12,7 +12,6 @@ class GameController extends Controller
     {
         $room = DB::table('rooms')->where('id', $roomId)->first();
         
-        // [MODIFICADO] Permite iniciar o jogo se a sala estiver 'Waiting' OU 'Finished'
         if (!$room || !in_array($room->status, ['Waiting', 'Finished'])) {
             return response()->json(['error' => 'Sala inválida para iniciar jogo.'], 400);
         }
